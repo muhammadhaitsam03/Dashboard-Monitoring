@@ -13,6 +13,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# prabowo kontol
 
 @app.get("/")
 def read_root():
