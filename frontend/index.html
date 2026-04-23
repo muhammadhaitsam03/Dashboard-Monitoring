@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plant Monitoring System - Login</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="background">
+        <!-- Bubbles for the background effect -->
+        <div class="bubble b1"></div>
+        <div class="bubble b2"></div>
+        <div class="bubble b3"></div>
+        <div class="bubble b4"></div>
+        <div class="bubble b5"></div>
+        <div class="bubble b6"></div>
+        <div class="bubble b7"></div>
+    </div>
+
+    <div class="login-container">
+        <div class="card">
+            <!-- Left Panel -->
+            <div class="card-left">
+                <!-- SVG organic shape background -->
+                <svg class="blob-bg" viewBox="0 0 600 650" preserveAspectRatio="none">
+                    <path fill="#ffffff" d="M0,0 L0,650 L200,650 C 450,550 400,450 420,300 C 440,150 450,50 250,0 Z">
+                    </path>
+                </svg>
+
+                <div class="brand">
+                    <img src="https://upload.wikimedia.org/wikipedia/id/9/9a/Logo_Polman_Bandung.png"
+                        alt="University Logo" class="logo">
+                    <div class="brand-text">
+                        <span class="uni-name">POLITEKNIK<br>MANUFAKTUR<br>BANDUNG</span>
+                    </div>
+                </div>
+
+                <div class="illustration-container">
+                    <!-- Custom generated illustration -->
+                    <img src="illustration.png" alt="Plant Monitoring" id="hero-img">
+                </div>
+
+                <div class="footer-left">
+                    <p>© 2026 POLITEKNIK MANUFAKTUR BANDUNG</p>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="card-right">
+                <div class="login-form-container">
+                    <h1 class="title">Login</h1>
+                    <form class="login-form">
+                        <div class="input-group">
+                            <label for="username">Username</label>
+                            <input type="text" id="username" placeholder="Enter your username" autocomplete="username">
+                        </div>
+                        <div class="input-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" placeholder="Enter your password"
+                                autocomplete="current-password">
+                            <a href="#" class="forgot-link">Forgot Password?</a>
+                        </div>
+                        <button type="button" class="login-btn"
+                            onclick="window.location.href='http://localhost:5173'">Login to Wifi</button>
+                    </form>
+                    <p class="register-text">Don't have an account?<br><a href="#">Register Now</a></p>
+
+                    <div class="footer-right-bottom">
+                        <a href="#" class="terms">Terms and Services</a>
+                        <p class="contact">Have a problem? Contact us at<br><a
+                                href="mailto:222411015@mhs.polman-bandung.ac.id">222411015@mhs.polman-bandung.ac.id</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
