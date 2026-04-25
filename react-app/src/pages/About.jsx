@@ -100,43 +100,43 @@ const TEAM_ROWS = [
 const FEATURES = [
   {
     icon: BarChart3,
-    title: 'Real-time Monitoring',
-    desc: 'Continuously track temperature, humidity, light, pH, and TDS with live sensor feeds and interactive charts.',
+    title: 'Monitoring Real-time',
+    desc: 'Pantau suhu, kelembapan, cahaya, pH, dan TDS secara terus-menerus melalui umpan sensor langsung dan grafik interaktif.',
     color: 'text-emerald-500',
     bg: 'bg-emerald-50 dark:bg-emerald-500/10',
   },
   {
     icon: BrainCircuit,
-    title: 'AI-Powered Predictions',
-    desc: 'Leverage PatchTST machine learning models to forecast environmental conditions up to 7 days ahead.',
+    title: 'Prediksi Berbasis AI',
+    desc: 'Manfaatkan model machine learning PatchTST untuk meramalkan kondisi lingkungan hingga 7 hari ke depan.',
     color: 'text-purple-500',
     bg: 'bg-purple-50 dark:bg-purple-500/10',
   },
   {
     icon: Shield,
-    title: 'Smart Thresholds',
-    desc: 'Set automated alert boundaries for each sensor, ensuring your plants always stay within optimal ranges.',
+    title: 'Threshold Cerdas',
+    desc: 'Atur batas peringatan otomatis untuk setiap sensor, memastikan tanaman Anda selalu berada dalam rentang optimal.',
     color: 'text-blue-500',
     bg: 'bg-blue-50 dark:bg-blue-500/10',
   },
   {
     icon: Cpu,
-    title: 'IoT Integration',
-    desc: 'Seamlessly connected to ESP32 micro-controllers and Supabase cloud infrastructure for reliable data flow.',
+    title: 'Integrasi IoT',
+    desc: 'Terhubung secara mulus dengan mikrokontroler ESP32 dan infrastruktur cloud Supabase untuk aliran data yang andal.',
     color: 'text-orange-500',
     bg: 'bg-orange-50 dark:bg-orange-500/10',
   },
   {
     icon: Wifi,
-    title: 'Remote Access',
-    desc: 'Access your greenhouse data from anywhere — desktop or mobile — with a responsive, modern interface.',
+    title: 'Akses Jarak Jauh',
+    desc: 'Akses data greenhouse Anda dari mana saja — desktop maupun mobile — dengan antarmuka modern yang responsif.',
     color: 'text-cyan-500',
     bg: 'bg-cyan-50 dark:bg-cyan-500/10',
   },
   {
     icon: Leaf,
-    title: 'Optimized Growth',
-    desc: 'Data-driven recommendations help you create the perfect environment for hydroponic red cabbage lettuce.',
+    title: 'Pertumbuhan Optimal',
+    desc: 'Rekomendasi berbasis data membantu Anda menciptakan lingkungan sempurna untuk budidaya selada merah keriting secara hidroponik.',
     color: 'text-green-500',
     bg: 'bg-green-50 dark:bg-green-500/10',
   },
@@ -203,7 +203,7 @@ export default function About() {
       <div className="w-full max-w-6xl mx-auto flex flex-col gap-12 pb-20">
 
         {/* ── Hero / Our Story Banner ─────────────────── */}
-        <section className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#2a4d3a] via-[#385344] to-[#1E463A] dark:from-[#1a3328] dark:via-[#243d2f] dark:to-[#152a20] p-8 md:p-12 shadow-[0_20px_60px_rgb(0,0,0,0.15)] dark:shadow-[0_20px_60px_rgb(0,0,0,0.3)]">
+        <section className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#2a4d3a] via-[#385344] to-[#1E463A] dark:from-[#1a3328] dark:via-[#243d2f] dark:to-[#152a20] p-8 md:p-10 lg:p-14 shadow-[0_20px_60px_rgb(0,0,0,0.15)] dark:shadow-[0_20px_60px_rgb(0,0,0,0.3)]">
           {/* Decorative elements */}
           <div className="absolute top-0 right-0 w-72 h-72 bg-white/5 rounded-full blur-3xl -mr-20 -mt-20"></div>
           <div className="absolute bottom-0 left-0 w-56 h-56 bg-emerald-400/10 rounded-full blur-3xl -ml-16 -mb-16"></div>
@@ -215,40 +215,61 @@ export default function About() {
             backgroundSize: '24px 24px'
           }}></div>
 
-          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center gap-6">
-            <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-lg shrink-0">
-              <Leaf className="w-8 h-8 text-emerald-300" />
-            </div>
-            <div className="flex-1">
-              <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight mb-3">
-                Our Story
+          <div className="relative z-10 flex flex-col gap-6">
+            {/* Title row */}
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-lg shrink-0">
+                <Leaf className="w-7 h-7 text-emerald-300" />
+              </div>
+              <h2 className="text-2xl md:text-[28px] font-bold text-white tracking-tight">
+                Cerita Kami
               </h2>
-              <p className="text-[15px] md:text-[16px] text-white/80 leading-relaxed max-w-3xl">
-                We are passionate about creating exceptional smart agriculture solutions that
-                elevate plant growth and enrich farming experiences. This dashboard was born from
-                a vision to bring cutting-edge IoT and machine learning technologies to greenhouse
-                monitoring — making precision farming accessible, intuitive, and beautiful.
+            </div>
+
+            {/* Lead paragraph */}
+            <p className="text-[18px] md:text-[20px] font-medium text-white/90 leading-snug max-w-3xl">
+              Pertanian Indonesia besar, tapi cara kerjanya masih banyak yang tertinggal.
+            </p>
+
+            {/* Divider */}
+            <div className="w-16 h-[2px] bg-emerald-400/40 rounded-full"></div>
+
+            {/* Body paragraphs */}
+            <div className="text-[14px] md:text-[15px] text-white/70 leading-[1.8] max-w-3xl space-y-4">
+              <p>
+                Di lapangan, keputusan budidaya sering dibuat berdasarkan perkiraan. Suhu berubah, nutrisi tidak stabil, pH bergeser — tapi semuanya baru disadari saat tanaman sudah terlanjur terdampak. Pada komoditas sensitif seperti selada merah keriting, keterlambatan kecil bisa berarti penurunan kualitas bahkan gagal panen.
+              </p>
+              <p>
+                Greenhouse dan hidroponik seharusnya memberi kontrol. Kenyataannya, tanpa sistem monitoring yang baik, fluktuasi tetap terjadi dan data tidak benar-benar dimanfaatkan.
+              </p>
+              <p>
+                Kami membangun sistem monitoring berbasis IoT, cloud, dan machine learning untuk mengubah proses yang reaktif menjadi proaktif. Parameter penting seperti suhu, kelembapan, pH, TDS, dan nutrisi dipantau secara real-time dan dianalisis untuk memprediksi kondisi ke depan.
               </p>
             </div>
+
+            {/* Closing statement */}
+            <p className="text-[15px] md:text-[16px] font-semibold text-emerald-300/90 italic max-w-3xl">
+              Bukan sekadar menampilkan data, tapi membantu mengambil keputusan sebelum masalah terjadi.
+            </p>
           </div>
         </section>
 
         {/* ── What We Offer ───────────────────────────── */}
         <section>
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-1.5 h-6 bg-[#1E463A] dark:bg-green-500 rounded-full"></div>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-1.5 h-7 bg-[#1E463A] dark:bg-green-500 rounded-full"></div>
             <div>
-              <p className="text-xs font-semibold text-[#1E463A] dark:text-green-400 uppercase tracking-[0.15em] mb-0.5">The Platform</p>
-              <h2 className="text-xl md:text-2xl font-semibold text-gray-800 dark:text-gray-200 tracking-tight">
-                What We Offer
+              <p className="text-[11px] font-semibold text-[#1E463A]/60 dark:text-green-400/70 uppercase tracking-[0.2em] mb-1">Platform</p>
+              <h2 className="text-[22px] md:text-[26px] font-bold text-gray-800 dark:text-gray-100 tracking-tight leading-tight">
+                Yang Kami Tawarkan
               </h2>
             </div>
           </div>
 
-          <p className="text-[15px] text-gray-600 dark:text-gray-400 leading-relaxed max-w-3xl mb-8">
-            We specialize in transforming greenhouse data into actionable insights. Explore our
-            suite of tools designed to monitor, predict, and optimize your hydroponic environment
-            with precision.
+          <p className="text-[14px] md:text-[15px] text-gray-500 dark:text-gray-400 leading-[1.75] max-w-3xl mb-10">
+            Kami mengkhususkan diri dalam mengubah data greenhouse menjadi wawasan yang dapat ditindaklanjuti.
+            Jelajahi rangkaian alat kami yang dirancang untuk memantau, memprediksi, dan mengoptimalkan
+            lingkungan hidroponik Anda dengan presisi.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
@@ -257,17 +278,17 @@ export default function About() {
               return (
                 <div
                   key={f.title}
-                  className="relative overflow-hidden bg-white/70 dark:bg-gray-800/60 backdrop-blur-md rounded-[24px] p-6 border border-white/40 dark:border-gray-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 group"
+                  className="relative overflow-hidden bg-white/70 dark:bg-gray-800/60 backdrop-blur-md rounded-[22px] p-6 md:p-7 border border-white/40 dark:border-gray-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 group"
                   style={{ animationDelay: `${i * 80}ms`, animationFillMode: 'both' }}
                 >
                   {/* Soft glow */}
                   <div className={`absolute top-0 right-0 w-28 h-28 ${f.bg} opacity-40 rounded-full blur-2xl -mr-8 -mt-8 transition-opacity group-hover:opacity-60`}></div>
 
-                  <div className={`p-3 rounded-2xl ${f.bg} shadow-sm w-fit mb-4 border border-white/50 dark:border-gray-700/30 transition-transform duration-300 group-hover:scale-110`}>
+                  <div className={`p-3 rounded-2xl ${f.bg} shadow-sm w-fit mb-5 border border-white/50 dark:border-gray-700/30 transition-transform duration-300 group-hover:scale-110`}>
                     <Icon className={`w-5 h-5 ${f.color} stroke-[2]`} />
                   </div>
-                  <h3 className="text-[16px] font-semibold text-gray-800 dark:text-gray-100 mb-2 tracking-wide">{f.title}</h3>
-                  <p className="text-[13px] text-gray-500 dark:text-gray-400 leading-relaxed">{f.desc}</p>
+                  <h3 className="text-[15px] font-bold text-gray-800 dark:text-gray-100 mb-2 tracking-tight">{f.title}</h3>
+                  <p className="text-[13px] text-gray-500 dark:text-gray-400 leading-[1.7]">{f.desc}</p>
                 </div>
               );
             })}
@@ -276,14 +297,14 @@ export default function About() {
 
         {/* ── Our Team ────────────────────────────────── */}
         <section>
-          <div className="flex flex-col items-center text-center mb-10">
-            <div className="w-1.5 h-6 bg-[#1E463A] dark:bg-green-500 rounded-full mb-3"></div>
-            <h2 className="text-xl md:text-2xl font-semibold text-gray-800 dark:text-gray-200 tracking-tight mb-2">
-              "Tim Kami"
+          <div className="flex flex-col items-center text-center mb-12">
+            <div className="w-1.5 h-7 bg-[#1E463A] dark:bg-green-500 rounded-full mb-3"></div>
+            <h2 className="text-[22px] md:text-[26px] font-bold text-gray-800 dark:text-gray-100 tracking-tight mb-3">
+              Tim Kami
             </h2>
-            <p className="text-[14px] text-gray-500 dark:text-gray-400 max-w-lg leading-relaxed">
-              A passionate group of students, each bringing unique skills and expertise to drive
-              innovation and excellence in every project we undertake.
+            <p className="text-[13px] md:text-[14px] text-gray-500 dark:text-gray-400 max-w-md leading-[1.75]">
+              Sekelompok mahasiswa yang penuh semangat, masing-masing membawa keahlian dan keterampilan
+              unik untuk mendorong inovasi dan keunggulan dalam setiap proyek yang kami kerjakan.
             </p>
           </div>
 
@@ -291,9 +312,13 @@ export default function About() {
             {TEAM_ROWS.map((row, rowIndex) => (
               <div key={rowIndex} className="flex flex-col items-center gap-6">
                 {/* University label */}
-                <h3 className="text-[15px] font-semibold text-gray-600 dark:text-gray-300 tracking-wide">
-                  {row.label}
-                </h3>
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-[1px] bg-gray-300 dark:bg-gray-600"></div>
+                  <h3 className="text-[13px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-[0.1em]">
+                    {row.label}
+                  </h3>
+                  <div className="w-8 h-[1px] bg-gray-300 dark:bg-gray-600"></div>
+                </div>
 
                 <div className="flex justify-center gap-10 md:gap-14 flex-wrap">
                   {row.members.map((member, i) => (
@@ -311,8 +336,8 @@ export default function About() {
                         <div className="absolute bottom-1 right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white dark:border-gray-800"></div>
                       </div>
 
-                      <h3 className="text-[14px] font-semibold text-gray-800 dark:text-gray-100 text-center leading-snug">{member.name}</h3>
-                      <p className="text-[12px] font-medium text-[#1E463A] dark:text-green-400 mt-1">{member.role}</p>
+                      <h3 className="text-[13px] font-semibold text-gray-800 dark:text-gray-100 text-center leading-snug">{member.name}</h3>
+                      <p className="text-[11px] font-semibold text-[#1E463A]/70 dark:text-green-400/80 uppercase tracking-wider mt-1.5">{member.role}</p>
 
                       {/* Social icons */}
                       <div className="flex gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -335,15 +360,15 @@ export default function About() {
         <section className="bg-white/70 dark:bg-gray-800/60 backdrop-blur-md rounded-[24px] p-6 md:p-8 border border-white/40 dark:border-gray-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
             <div className="flex-1">
-              <h3 className="text-[16px] font-bold text-gray-800 dark:text-gray-100 mb-2">Greenhouse Monitoring Dashboard</h3>
-              <p className="text-[13px] text-gray-500 dark:text-gray-400 leading-relaxed">
-                Built as part of a final project (Tugas Akhir) to demonstrate the integration of IoT sensor
-                networks, cloud databases, and machine learning for precision agriculture. Powered by React,
-                FastAPI, Supabase, and PatchTST.
+              <h3 className="text-[15px] font-bold text-gray-800 dark:text-gray-100 mb-2 tracking-tight">Dashboard Monitoring Greenhouse</h3>
+              <p className="text-[13px] text-gray-500 dark:text-gray-400 leading-[1.75]">
+                Dibangun sebagai bagian dari Tugas Akhir untuk mendemonstrasikan integrasi jaringan sensor IoT,
+                database cloud, dan machine learning untuk pertanian presisi. Diberdayakan oleh React,
+                FastAPI, Supabase, dan PatchTST.
               </p>
             </div>
             <div className="flex flex-col items-end gap-1 shrink-0 text-right">
-              <span className="text-xs font-medium text-gray-400 dark:text-gray-500">Version</span>
+              <span className="text-xs font-medium text-gray-400 dark:text-gray-500">Versi</span>
               <span className="text-sm font-bold text-[#1E463A] dark:text-green-400">v1.0.0</span>
             </div>
           </div>
