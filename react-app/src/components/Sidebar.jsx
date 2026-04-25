@@ -89,11 +89,11 @@ export default function Sidebar({ isDark }) {
           </div>
         )}
 
-        {/* Logo Placeholder (Static) */}
+        {/* Logo */}
         <div 
-          className="w-14 h-14 bg-[#D9D9D9] rounded-full mb-8 flex items-center justify-center relative z-10 shrink-0"
+          className="w-14 h-14 rounded-full mb-8 flex items-center justify-center relative z-10 shrink-0 overflow-hidden bg-white/90 dark:bg-white/15 shadow-md"
         >
-          {/* Logo will go here in the future */}
+          <img src="/logo.png" alt="Dashboard Logo" className="w-10 h-10 object-contain" />
         </div>
 
         <nav className="flex flex-col gap-1 flex-1 w-full relative z-10 justify-center">
