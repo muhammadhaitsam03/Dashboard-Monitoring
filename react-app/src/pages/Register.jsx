@@ -19,7 +19,12 @@ export default function Register() {
     setError("");
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError("Password tidak cocok.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password harus minimal 6 karakter.");
       return;
     }
 
@@ -44,7 +49,7 @@ export default function Register() {
         navigate("/home");
       } else {
         // If email confirmation is required, let user know
-        setError("Registration successful! Check your email to verify your account before logging in. If email confirmation is disabled, you can log in now.");
+        setError("Registrasi berhasil! Periksa email Anda untuk verifikasi akun sebelum login.");
         // Optional: navigate to login directly after a delay
         setTimeout(() => navigate('/login'), 4000);
       }
@@ -65,10 +70,11 @@ export default function Register() {
         <div className="bubble b7"></div>
       </div>
 
-      <div className="z-[2] w-full max-w-[1050px] md:h-[650px] h-auto min-h-screen md:min-h-0 p-5 flex justify-center items-center">
-        <div className="bg-[#385344] w-full h-full md:rounded-[40px] rounded-[30px] flex flex-col md:flex-row shadow-[0_30px_60px_rgba(0,0,0,0.3)] relative overflow-x-hidden md:overflow-visible overflow-y-auto">
-          {/* Left Panel */}
-          <div className="md:flex-[1.1] relative flex flex-col pt-[35px] px-[45px] pb-[30px] z-10 min-h-[250px] md:min-h-[350px]">
+      <div className="z-[2] w-full max-w-[1080px] md:h-[660px] h-auto min-h-screen md:min-h-0 p-5 flex justify-center items-center">
+        <div className="bg-[#385344] w-full h-full md:rounded-[36px] rounded-[28px] flex flex-col md:flex-row shadow-[0_30px_60px_rgba(0,0,0,0.3)] relative overflow-x-hidden md:overflow-visible overflow-y-auto">
+          
+          {/* Left Panel — Branding & Illustration */}
+          <div className="md:flex-[1.05] relative flex flex-col pt-10 px-10 pb-8 z-10 min-h-[280px] md:min-h-[320px]">
             {/* SVG organic shape background */}
             <svg
               className="absolute top-0 left-0 md:w-[140%] md:h-full w-full h-[130%] z-[-1] pointer-events-none"
@@ -87,133 +93,200 @@ export default function Register() {
               ></path>
             </svg>
 
-            <div className="flex items-center gap-[12px]">
+            {/* Logo + Title */}
+            <div className="flex items-center gap-3.5">
               <img
-                src="https://upload.wikimedia.org/wikipedia/id/9/9a/Logo_Polman_Bandung.png"
-                alt="University Logo"
-                className="w-[55px] h-auto"
+                src="/logo.png"
+                alt="Dashboard Logo"
+                className="w-12 h-12 object-contain"
               />
-              <div className="text-[#235A8E] text-[13.5px] font-bold leading-[1.1] tracking-[0.2px]">
-                <span>
-                  POLITEKNIK
-                  <br />
-                  MANUFAKTUR
-                  <br />
-                  BANDUNG
-                </span>
+              <div>
+                <p className="text-[#2C5F4A] text-[15px] font-extrabold tracking-[0.5px] leading-none">
+                  DASHBOARD
+                </p>
+                <p className="text-[#2C5F4A] text-[15px] font-extrabold tracking-[0.5px] leading-none mt-[3px]">
+                  MONITORING
+                </p>
               </div>
             </div>
 
-            <div className="flex-1 flex justify-center items-center relative mt-[10px]">
+            {/* Illustration */}
+            <div className="flex-1 flex justify-center items-center relative mt-2">
               <img
                 src="/illustration.png"
-                alt="Plant Monitoring"
-                className="max-w-[70%] max-h-[200px] md:max-w-[90%] md:max-h-[280px] object-contain mix-blend-multiply"
+                alt="Plant Monitoring System"
+                className="max-w-[88%] max-h-[300px] object-contain mix-blend-multiply drop-shadow-sm"
               />
             </div>
 
-            <div className="text-[#6A8678] text-[11px] leading-[1.6] mt-auto hidden md:block">
-              <p>© 2026 POLITEKNIK MANUFAKTUR BANDUNG</p>
-              <p>Powered by NOC</p>
+            {/* Footer */}
+            <div className="text-[#8BA898] text-[10.5px] leading-[1.5] mt-auto tracking-[0.2px] hidden md:block">
+              <p>© 2026 Politeknik Manufaktur Bandung</p>
+              <p className="opacity-70">Powered by NOC</p>
             </div>
           </div>
 
-          {/* Right Panel */}
-          <div className="md:flex-[0.9] flex flex-col justify-center items-center p-[30px] md:p-[40px] relative z-10 w-full py-[40px]">
-            <div className="w-full max-w-[320px] flex flex-col">
-              <h1 className="text-[34px] font-semibold mb-[25px] tracking-[0.5px]">
-                Register
-              </h1>
-              <form className="flex flex-col gap-[16px]" onSubmit={handleRegister}>
+          {/* Right Panel — Register Form */}
+          <div className="md:flex-[0.95] flex flex-col justify-center items-center px-10 py-10 md:px-14 md:py-0 relative z-10 w-full">
+            <div className="w-full max-w-[340px] flex flex-col">
+              
+              {/* Heading */}
+              <div className="mb-7">
+                <h1 className="text-[32px] font-bold tracking-[-0.5px] text-white leading-none">
+                  Buat Akun
+                </h1>
+                <p className="text-[#9BB0A5] text-[13.5px] mt-2.5 leading-relaxed">
+                  Daftar untuk mulai memantau tanaman Anda
+                </p>
+              </div>
+
+              {/* Form */}
+              <form className="flex flex-col gap-[18px]" onSubmit={handleRegister}>
                 {error && (
-                  <div className={`text-[13px] p-3 rounded-xl border font-medium text-center animate-page-enter backdrop-blur-sm ${error.includes('successful') ? 'bg-green-500/20 text-green-100 border-green-500/30' : 'bg-red-500/20 text-red-100 border-red-500/30'}`}>
+                  <div className={`text-[12.5px] px-4 py-3 rounded-2xl border font-medium text-center animate-page-enter backdrop-blur-sm leading-relaxed ${error.includes('berhasil') ? 'bg-emerald-500/15 text-emerald-200 border-emerald-500/20' : 'bg-red-500/15 text-red-200 border-red-500/20'}`}>
                     {error}
                   </div>
                 )}
-                
-                <div className="flex flex-col gap-[8px]">
-                  <label className="text-[13px] font-semibold text-white tracking-[0.2px]">Name</label>
+
+                {/* Name */}
+                <div className="flex flex-col gap-2">
+                  <label
+                    htmlFor="name"
+                    className="text-[12.5px] font-semibold text-[#C8D8CF] tracking-[0.3px] uppercase"
+                  >
+                    Nama Lengkap
+                  </label>
                   <input
                     type="text"
+                    id="name"
                     value={name}
                     onChange={(e) => { setName(e.target.value); setError(""); }}
-                    placeholder="Full name"
+                    placeholder="Masukkan nama lengkap"
                     required
-                    className="bg-[#273E31] border-none rounded-[25px] py-[14px] px-[20px] text-white text-[13px] outline-none transition-all duration-300 shadow-[inset_0_2px_6px_rgba(0,0,0,0.2)] placeholder-[#9BB0A5] focus:shadow-[inset_0_2px_6px_rgba(0,0,0,0.2),0_0_0_2px_rgba(255,255,255,0.15)]"
+                    className="bg-[#2B4236] border border-[#3D5A4A] rounded-2xl py-[13px] px-5 text-white text-[13.5px] outline-none transition-all duration-300 placeholder-[#6E8E7D] focus:border-[#80A19B] focus:bg-[#263D30]"
                   />
                 </div>
 
-                <div className="flex flex-col gap-[8px]">
-                  <label className="text-[13px] font-semibold text-white tracking-[0.2px]">Email</label>
+                {/* Email */}
+                <div className="flex flex-col gap-2">
+                  <label
+                    htmlFor="register-email"
+                    className="text-[12.5px] font-semibold text-[#C8D8CF] tracking-[0.3px] uppercase"
+                  >
+                    Email
+                  </label>
                   <input
                     type="email"
+                    id="register-email"
                     value={email}
                     onChange={(e) => { setEmail(e.target.value); setError(""); }}
-                    placeholder="Enter email address"
+                    placeholder="nama@email.com"
                     required
-                    className="bg-[#273E31] border-none rounded-[25px] py-[14px] px-[20px] text-white text-[13px] outline-none transition-all duration-300 shadow-[inset_0_2px_6px_rgba(0,0,0,0.2)] placeholder-[#9BB0A5] focus:shadow-[inset_0_2px_6px_rgba(0,0,0,0.2),0_0_0_2px_rgba(255,255,255,0.15)]"
+                    className="bg-[#2B4236] border border-[#3D5A4A] rounded-2xl py-[13px] px-5 text-white text-[13.5px] outline-none transition-all duration-300 placeholder-[#6E8E7D] focus:border-[#80A19B] focus:bg-[#263D30]"
                   />
                 </div>
 
-                <div className="flex flex-col gap-[8px]">
-                  <label className="text-[13px] font-semibold text-white tracking-[0.2px]">Password</label>
+                {/* Password */}
+                <div className="flex flex-col gap-2">
+                  <label
+                    htmlFor="register-password"
+                    className="text-[12.5px] font-semibold text-[#C8D8CF] tracking-[0.3px] uppercase"
+                  >
+                    Password
+                  </label>
                   <div className="relative flex items-center">
                     <input
                       type={showPassword ? "text" : "password"}
+                      id="register-password"
                       value={password}
                       onChange={(e) => { setPassword(e.target.value); setError(""); }}
-                      placeholder="Create a password"
+                      placeholder="Buat password"
                       required
-                      className="w-full bg-[#273E31] border-none rounded-[25px] py-[14px] pl-[20px] pr-[50px] text-white text-[13px] outline-none transition-all duration-300 shadow-[inset_0_2px_6px_rgba(0,0,0,0.2)] placeholder-[#9BB0A5] focus:shadow-[inset_0_2px_6px_rgba(0,0,0,0.2),0_0_0_2px_rgba(255,255,255,0.15)]"
+                      className="w-full bg-[#2B4236] border border-[#3D5A4A] rounded-2xl py-[13px] pl-5 pr-12 text-white text-[13.5px] outline-none transition-all duration-300 placeholder-[#6E8E7D] focus:border-[#80A19B] focus:bg-[#263D30]"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-[16px] text-[#9BB0A5] hover:text-white transition-colors cursor-pointer"
+                      className="absolute right-4 text-[#6E8E7D] hover:text-white transition-colors cursor-pointer"
                     >
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                     </button>
                   </div>
+                  {/* Password strength hint */}
+                  {password.length > 0 && (
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <div className="flex gap-1 flex-1">
+                        <div className={`h-1 rounded-full flex-1 transition-colors ${password.length >= 2 ? (password.length >= 8 ? 'bg-emerald-400' : 'bg-amber-400') : 'bg-[#3D5A4A]'}`}></div>
+                        <div className={`h-1 rounded-full flex-1 transition-colors ${password.length >= 6 ? (password.length >= 8 ? 'bg-emerald-400' : 'bg-amber-400') : 'bg-[#3D5A4A]'}`}></div>
+                        <div className={`h-1 rounded-full flex-1 transition-colors ${password.length >= 8 ? 'bg-emerald-400' : 'bg-[#3D5A4A]'}`}></div>
+                      </div>
+                      <span className={`text-[10.5px] font-medium ${password.length >= 8 ? 'text-emerald-400' : password.length >= 6 ? 'text-amber-400' : 'text-red-400'}`}>
+                        {password.length >= 8 ? 'Kuat' : password.length >= 6 ? 'Cukup' : 'Lemah'}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
-                <div className="flex flex-col gap-[8px]">
-                  <label className="text-[13px] font-semibold text-white tracking-[0.2px]">Confirm Password</label>
+                {/* Confirm Password */}
+                <div className="flex flex-col gap-2">
+                  <label
+                    htmlFor="register-confirm-password"
+                    className="text-[12.5px] font-semibold text-[#C8D8CF] tracking-[0.3px] uppercase"
+                  >
+                    Konfirmasi Password
+                  </label>
                   <div className="relative flex items-center">
                     <input
                       type={showConfirmPassword ? "text" : "password"}
+                      id="register-confirm-password"
                       value={confirmPassword}
                       onChange={(e) => { setConfirmPassword(e.target.value); setError(""); }}
-                      placeholder="Confirm password"
+                      placeholder="Masukkan ulang password"
                       required
-                      className="w-full bg-[#273E31] border-none rounded-[25px] py-[14px] pl-[20px] pr-[50px] text-white text-[13px] outline-none transition-all duration-300 shadow-[inset_0_2px_6px_rgba(0,0,0,0.2)] placeholder-[#9BB0A5] focus:shadow-[inset_0_2px_6px_rgba(0,0,0,0.2),0_0_0_2px_rgba(255,255,255,0.15)]"
+                      className="w-full bg-[#2B4236] border border-[#3D5A4A] rounded-2xl py-[13px] pl-5 pr-12 text-white text-[13.5px] outline-none transition-all duration-300 placeholder-[#6E8E7D] focus:border-[#80A19B] focus:bg-[#263D30]"
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-[16px] text-[#9BB0A5] hover:text-white transition-colors cursor-pointer"
+                      className="absolute right-4 text-[#6E8E7D] hover:text-white transition-colors cursor-pointer"
                     >
-                      {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      {showConfirmPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                     </button>
                   </div>
+                  {/* Match indicator */}
+                  {confirmPassword.length > 0 && (
+                    <p className={`text-[11px] mt-0.5 ${confirmPassword === password ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {confirmPassword === password ? '✓ Password cocok' : '✗ Password tidak cocok'}
+                    </p>
+                  )}
                 </div>
 
+                {/* Submit */}
                 <button
                   type="submit"
                   disabled={loading}
-                  className="bg-[#80A19B] hover:bg-[#92b6af] text-[#193026] hover:-translate-y-[2px] disabled:opacity-75 disabled:hover:translate-y-0 border-none rounded-[25px] p-[14px] text-[15px] font-semibold cursor-pointer mt-[10px] transition-all duration-300 shadow-[0_4px_15px_rgba(128,161,155,0.25)] hover:shadow-[0_6px_20px_rgba(128,161,155,0.35)]"
+                  className="bg-[#80A19B] hover:bg-[#93B8B1] text-[#1A2E23] hover:-translate-y-[1px] disabled:opacity-60 disabled:hover:translate-y-0 border-none rounded-2xl py-[13px] text-[14px] font-bold cursor-pointer mt-1 transition-all duration-300 shadow-[0_4px_20px_rgba(128,161,155,0.2)] hover:shadow-[0_8px_30px_rgba(128,161,155,0.3)] tracking-[0.3px]"
                 >
-                  {loading ? "Creating Account..." : "Sign Up"}
+                  {loading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      Membuat akun...
+                    </span>
+                  ) : "Daftar"}
                 </button>
               </form>
 
-              <p className="text-center text-[13px] text-[#9BB0A5] mt-[25px] leading-[1.6]">
-                Already have an account?
-                <br />
+              {/* Login link */}
+              <p className="text-center text-[13px] text-[#8BA898] mt-6 leading-relaxed">
+                Sudah punya akun?{" "}
                 <Link
                   to="/login"
-                  className="text-white hover:no-underline underline underline-offset-[3px]"
+                  className="text-[#A8CBC4] hover:text-white font-semibold transition-colors duration-200 no-underline hover:underline underline-offset-[3px]"
                 >
-                  Login Here
+                  Masuk
                 </Link>
               </p>
             </div>
