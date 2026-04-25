@@ -115,6 +115,7 @@ const processSensorData = (rawData, dbKey, timeMode, targetDateStr, rangeStart, 
   }
 
   if (timeMode === 'Perhari') {
+    const HARI_INDONESIA = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
     const start = new Date(`${targetDateStr}T00:00:00`);
     const spanDays = parseInt(spanLimit.split(' ')[0], 10) || 6;
     const end = new Date(start);
@@ -124,7 +125,7 @@ const processSensorData = (rawData, dbKey, timeMode, targetDateStr, rangeStart, 
     const buckets = Array(spanDays).fill().map((_, i) => {
       const bDate = new Date(start);
       bDate.setDate(bDate.getDate() + i);
-      const label = formatDateToDDMMYYYY(bDate).slice(0, 5); 
+      const label = HARI_INDONESIA[bDate.getDay()];
       return { time: i, label, sum: 0, count: 0, value: null, targetDate: bDate.toDateString() };
     });
 
@@ -150,7 +151,10 @@ const processSensorData = (rawData, dbKey, timeMode, targetDateStr, rangeStart, 
     end.setHours(23, 59, 59, 999);
     
     const buckets = Array(spanWeeks).fill().map((_, i) => {
-      return { time: i, label: `W${i+1}`, sum: 0, count: 0, value: null };
+      const weekStart = new Date(start);
+      weekStart.setDate(start.getDate() + (i * 7));
+      const label = formatDateToDDMMYYYY(weekStart);
+      return { time: i, label, sum: 0, count: 0, value: null };
     });
 
     rawData.forEach(row => {
@@ -169,7 +173,7 @@ const processSensorData = (rawData, dbKey, timeMode, targetDateStr, rangeStart, 
 
   if (timeMode === 'Perbulan') {
     const yearInt = parseInt(selectedYear, 10) || new Date().getFullYear();
-    const buckets = Array(12).fill().map((_, i) => ({ time: i, label: RANGE_OPTIONS['Perbulan'][i].slice(0, 3), sum: 0, count: 0, value: null }));
+    const buckets = Array(12).fill().map((_, i) => ({ time: i, label: RANGE_OPTIONS['Perbulan'][i], sum: 0, count: 0, value: null }));
     
     rawData.forEach(row => {
       const d = new Date(row.created_at);
@@ -207,6 +211,7 @@ const chartThemes = {
 
 const CustomTooltip = ({ active, payload, label, unit, color }) => {
   if (active && payload && payload.length) {
+    const displayLabel = payload[0]?.payload?.label || label;
     return (
       <div style={{
         background: 'rgba(255,255,255,0.95)',
@@ -218,7 +223,7 @@ const CustomTooltip = ({ active, payload, label, unit, color }) => {
         minWidth: '90px'
       }}>
         <p style={{ fontSize: '11px', color: '#9CA3AF', marginBottom: '4px', fontWeight: 500 }}>
-          {label}
+          {displayLabel}
         </p>
         <p style={{ fontSize: '16px', fontWeight: 700, color: color, letterSpacing: '-0.02em' }}>
           {payload[0].value}{unit}
