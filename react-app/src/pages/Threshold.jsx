@@ -13,7 +13,8 @@ import {
   Check,
   Loader2,
   Sparkles,
-  Hand
+  Hand,
+  Wifi
 } from 'lucide-react';
 import NotificationDropdown from '../components/NotificationDropdown';
 import LiveClock from '../components/LiveClock';
@@ -21,16 +22,15 @@ import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 
 const SENSORS = [
-  { id: 'suhu_rumah_kaca', label: 'Suhu Rumah Kaca', icon: ThermometerSun, unit: '°C', defaultMin: 20, defaultMax: 27, color: 'text-orange-500' },
-  { id: 'kelembapan', label: 'Kelembapan', icon: Droplets, unit: '%', defaultMin: 60, defaultMax: 80, color: 'text-blue-500' },
-  { id: 'intensitas_cahaya', label: 'Intensitas Cahaya', icon: SunMedium, unit: 'lux', defaultMin: 300, defaultMax: 500, color: 'text-yellow-500' },
-  { id: 'ph', label: 'pH', icon: FlaskConical, unit: '', defaultMin: 5.5, defaultMax: 6.5, color: 'text-purple-500' },
-  { id: 'tds', label: 'TDS', icon: Waves, unit: 'ppm', defaultMin: 400, defaultMax: 600, color: 'text-teal-500' },
-  { id: 'suhu_larutan', label: 'Suhu Larutan', icon: Thermometer, unit: '°C', defaultMin: 18, defaultMax: 24, color: 'text-rose-500' },
+  { id: 'suhu_rumah_kaca', label: 'Suhu Rumah Kaca', shortLabel: 'Suhu Kaca', icon: ThermometerSun, unit: '°C', defaultMin: 20, defaultMax: 27, color: 'text-orange-500', bg: 'bg-orange-50 dark:bg-orange-500/10', ring: 'ring-orange-200 dark:ring-orange-800/40' },
+  { id: 'kelembapan', label: 'Kelembapan', shortLabel: 'Kelembapan', icon: Droplets, unit: '%', defaultMin: 60, defaultMax: 80, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-500/10', ring: 'ring-blue-200 dark:ring-blue-800/40' },
+  { id: 'intensitas_cahaya', label: 'Intensitas Cahaya', shortLabel: 'Cahaya', icon: SunMedium, unit: 'lux', defaultMin: 300, defaultMax: 500, color: 'text-yellow-500', bg: 'bg-yellow-50 dark:bg-yellow-500/10', ring: 'ring-yellow-200 dark:ring-yellow-800/40' },
+  { id: 'ph', label: 'pH', shortLabel: 'pH', icon: FlaskConical, unit: '', defaultMin: 5.5, defaultMax: 6.5, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-500/10', ring: 'ring-purple-200 dark:ring-purple-800/40' },
+  { id: 'tds', label: 'TDS', shortLabel: 'TDS', icon: Waves, unit: 'ppm', defaultMin: 400, defaultMax: 600, color: 'text-teal-500', bg: 'bg-teal-50 dark:bg-teal-500/10', ring: 'ring-teal-200 dark:ring-teal-800/40' },
+  { id: 'suhu_larutan', label: 'Suhu Larutan', shortLabel: 'Suhu Larutan', icon: Thermometer, unit: '°C', defaultMin: 18, defaultMax: 24, color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-500/10', ring: 'ring-rose-200 dark:ring-rose-800/40' },
 ];
 
 // ML-recommended thresholds (from PatchTST model predictions)
-// In production, these would come from an ML API endpoint
 const ML_RECOMMENDATIONS = {
   suhu_rumah_kaca: { min: 18, max: 24, reason: 'Model prediksi suhu akan naik ke 27.3°C — range lebih rendah untuk antisipasi' },
   kelembapan: { min: 50, max: 70, reason: 'Prediksi kelembapan 0.83 — range disesuaikan untuk mencegah jamur' },
@@ -62,7 +62,7 @@ const ThresholdInput = ({ type, value, onUpdate, step, disabled }) => {
       onBlur={handleBlurOrEnter}
       onKeyDown={e => { if (e.key === 'Enter') handleBlurOrEnter(); }}
       disabled={disabled}
-      className={`text-[22px] text-gray-800 dark:text-gray-200 bg-transparent outline-none w-[60px] text-center font-medium [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+      className={`text-[28px] text-gray-800 dark:text-gray-200 bg-transparent outline-none w-[70px] text-center font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
       step={step}
     />
   );
@@ -79,7 +79,6 @@ export default function Threshold() {
   const [isAutoMode, setIsAutoMode] = useState(() => localStorage.getItem('threshold_auto_mode') === 'true');
   const [autoApplying, setAutoApplying] = useState(false);
 
-  // Initialize thresholds with default values
   const [thresholds, setThresholds] = useState(() => {
     const initial = {};
     SENSORS.forEach(s => {
@@ -88,7 +87,6 @@ export default function Threshold() {
     return initial;
   });
 
-  // Saved/applied thresholds (what the sensor actually uses)
   const [savedThresholds, setSavedThresholds] = useState(() => {
     const initial = {};
     SENSORS.forEach(s => {
@@ -99,7 +97,6 @@ export default function Threshold() {
 
   const [isSaved, setIsSaved] = useState(false);
 
-  // Load thresholds from Supabase on mount
   useEffect(() => {
     const fetchThresholds = async () => {
       try {
@@ -127,7 +124,6 @@ export default function Threshold() {
     fetchThresholds();
   }, []);
 
-  // When switching to Auto mode, apply ML recommendations
   useEffect(() => {
     if (isAutoMode) {
       applyMLRecommendations();
@@ -159,7 +155,6 @@ export default function Threshold() {
         }
       });
 
-      // Save all to Supabase
       await Promise.all(updates);
 
       setThresholds(prev => ({ ...prev, ...newThresholds }));
@@ -259,18 +254,18 @@ export default function Threshold() {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-screen overflow-hidden animate-page-enter relative z-0">
+    <div className="flex-1 flex flex-col h-screen overflow-y-auto px-6 md:px-10 lg:px-14 py-8 md:py-10 animate-page-enter relative z-0">
 
-      {/* Soft Decorative Background */}
+      {/* Decorative Background */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-200/30 dark:bg-emerald-900/15 rounded-full blur-[80px] -z-10 pointer-events-none"></div>
       <div className="absolute bottom-10 left-10 w-[600px] h-[600px] bg-[#1E463A]/5 dark:bg-[#1E463A]/20 rounded-full blur-[100px] -z-10 pointer-events-none"></div>
 
-      {/* Top Header */}
-      <header className="flex justify-between items-center px-6 md:px-10 lg:px-14 pt-8 md:pt-10 mb-2">
+      {/* ─── Header ─── */}
+      <header className="flex justify-between items-center mb-6 mt-2">
         <div className="flex items-center gap-4">
           <h1 className="text-3xl md:text-4xl font-semibold text-gray-800 dark:text-white tracking-tight">Threshold Sensor</h1>
 
-          {/* Manual / Auto ML Toggle Switch */}
+          {/* Manual / Auto ML Toggle */}
           <div className="flex items-center gap-0 bg-gray-100 dark:bg-gray-800 rounded-full p-1 border border-gray-200/60 dark:border-gray-700/60 shadow-inner ml-3">
             <button
               onClick={() => { setIsAutoMode(false); localStorage.setItem('threshold_auto_mode', 'false'); }}
@@ -299,27 +294,16 @@ export default function Threshold() {
 
         <div className="flex items-center gap-4 md:gap-6">
           <NotificationDropdown />
-
-          {/* Theme Toggle */}
           <div
             onClick={toggleTheme}
             className="bg-gray-200 dark:bg-gray-700 rounded-full w-14 h-8 flex items-center p-1 relative cursor-pointer shadow-inner hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
           >
-            <div
-              className={`bg-white dark:bg-gray-900 rounded-full w-6 h-6 flex justify-center items-center shadow-sm absolute transition-all duration-300 ease-in-out ${isDark ? 'translate-x-6' : 'translate-x-0'}`}
-            >
-              {isDark ? (
-                <Moon className="w-3.5 h-3.5 text-gray-100" />
-              ) : (
-                <Sun className="w-3.5 h-3.5 text-gray-700" />
-              )}
+            <div className={`bg-white dark:bg-gray-900 rounded-full w-6 h-6 flex justify-center items-center shadow-sm absolute transition-all duration-300 ease-in-out ${isDark ? 'translate-x-6' : 'translate-x-0'}`}>
+              {isDark ? <Moon className="w-3.5 h-3.5 text-gray-100" /> : <Sun className="w-3.5 h-3.5 text-gray-700" />}
             </div>
           </div>
-
           <LiveClock />
-
           <div className="hidden sm:block h-8 w-px bg-gray-300 dark:bg-gray-700 mx-1"></div>
-
           <div onClick={() => navigate('/account')} className="flex items-center gap-3 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 p-1.5 pr-4 rounded-[25px] transition-colors -mr-2">
             <div className="w-10 h-10 overflow-hidden bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 rounded-full flex items-center justify-center font-bold text-sm shadow-sm border border-[#cecfce] dark:border-gray-600">
               {user?.user_metadata?.avatar_url ? (
@@ -336,59 +320,108 @@ export default function Threshold() {
         </div>
       </header>
 
-      {/* Content Section: Center area + Right Sidebar */}
-      <div className="flex-1 flex overflow-hidden">
+      {/* ─── Auto ML Info Bar (slim, non-blocking) ─── */}
+      {isAutoMode && (
+        <div className="mb-6 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border border-emerald-200/60 dark:border-emerald-700/40 rounded-2xl px-5 py-3.5 flex items-center gap-4 transition-all duration-300">
+          <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center shrink-0 shadow-sm">
+            <Sparkles className="w-4 h-4 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-[13px] font-bold text-emerald-800 dark:text-emerald-300">Mode Auto ML Aktif</span>
+              {autoApplying && <Loader2 className="w-3.5 h-3.5 text-emerald-500 animate-spin" />}
+            </div>
+            {mlRec && (
+              <p className="text-[12px] text-emerald-700/80 dark:text-emerald-400/60 mt-0.5 truncate">
+                {activeSensor.label}: {mlRec.reason}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Wifi className="w-3.5 h-3.5 text-emerald-500" />
+            <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">ESP32 Terhubung</span>
+          </div>
+        </div>
+      )}
 
-        {/* Central Area: Large Circle and Inputs */}
-        <div className="flex-1 flex flex-col items-center justify-center relative">
+      {/* ─── Main Content: 2-column layout ─── */}
+      <div className="flex-1 flex gap-8 pb-10">
 
-          {/* Auto ML info banner (shown in auto mode) */}
-          {isAutoMode && (
-            <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 w-[90%] max-w-[520px]">
-              <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40 border border-emerald-200/70 dark:border-emerald-700/40 rounded-2xl px-5 py-4 backdrop-blur-md shadow-lg shadow-emerald-500/5">
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
-                    <Sparkles className="w-4.5 h-4.5 text-white" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[13px] font-bold text-emerald-800 dark:text-emerald-300">Mode Auto ML Aktif</span>
-                      {autoApplying && <Loader2 className="w-3.5 h-3.5 text-emerald-500 animate-spin" />}
-                    </div>
-                    <p className="text-[12px] text-emerald-700/80 dark:text-emerald-400/70 leading-relaxed">
-                      Threshold diatur otomatis berdasarkan prediksi model PatchTST.
-                      {mlRec && (
-                        <span className="block mt-1 font-medium text-emerald-800 dark:text-emerald-300">
-                          {activeSensor.label}: {mlRec.reason}
-                        </span>
-                      )}
-                    </p>
-                  </div>
+        {/* Left Column: Sensor List */}
+        <div className="w-[220px] shrink-0 flex flex-col gap-2.5">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-1.5 h-5 bg-[#1E463A] dark:bg-green-500 rounded-full"></div>
+            <h2 className="text-[13px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Pilih Sensor</h2>
+          </div>
+
+          {SENSORS.map(sensor => {
+            const Icon = sensor.icon;
+            const isActive = activeSensorId === sensor.id;
+            const sensorSaved = savedThresholds[sensor.id];
+
+            return (
+              <button
+                key={sensor.id}
+                onClick={() => setActiveSensorId(sensor.id)}
+                className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-left transition-all duration-200 cursor-pointer group ${
+                  isActive
+                    ? isAutoMode
+                      ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/15'
+                      : 'bg-[#385344] text-white shadow-lg shadow-[#385344]/20'
+                    : 'bg-white/60 dark:bg-gray-800/40 hover:bg-white dark:hover:bg-gray-800/70 border border-gray-100 dark:border-gray-700/40 hover:shadow-md'
+                }`}
+              >
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                  isActive
+                    ? 'bg-white/20'
+                    : sensor.bg
+                }`}>
+                  <Icon className={`w-5 h-5 ${isActive ? 'text-white' : sensor.color}`} />
                 </div>
-              </div>
+                <div className="min-w-0 flex-1">
+                  <p className={`text-[13px] font-semibold leading-tight ${isActive ? 'text-white' : 'text-gray-700 dark:text-gray-200'}`}>
+                    {sensor.label}
+                  </p>
+                  <p className={`text-[11px] mt-0.5 font-medium ${isActive ? 'text-white/70' : 'text-gray-400 dark:text-gray-500'}`}>
+                    {sensorSaved.min} – {sensorSaved.max} {sensor.unit}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
+
+          {/* ESP32 Connection Status */}
+          {!isAutoMode && (
+            <div className="mt-4 flex items-center gap-2 px-4 py-3 bg-white/50 dark:bg-gray-800/30 rounded-2xl border border-gray-100 dark:border-gray-700/30">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+              <span className="text-[11px] text-gray-500 dark:text-gray-400">Terhubung ke ESP32 via Supabase</span>
             </div>
           )}
+        </div>
 
-          {/* Big Placeholder Circle */}
-          <div className={`w-[380px] aspect-square rounded-full mb-16 shadow-inner relative flex flex-col items-center justify-center shrink-0 transition-all duration-500 ${
+        {/* Right Column: Main Display */}
+        <div className="flex-1 flex flex-col items-center justify-center">
+
+          {/* Circle Display */}
+          <div className={`w-[360px] aspect-square rounded-full shadow-inner relative flex flex-col items-center justify-center shrink-0 transition-all duration-500 ${
             isAutoMode
               ? 'bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 ring-2 ring-emerald-300/50 dark:ring-emerald-600/30'
-              : 'bg-[#D9D9D9] dark:bg-gray-700'
-          } text-gray-500 dark:text-gray-400`}>
+              : `bg-gray-100 dark:bg-gray-800/60 ring-1 ${activeSensor.ring}`
+          }`}>
             {loading ? (
               <Loader2 className="w-16 h-16 animate-spin text-gray-400" />
             ) : (
               <>
-                <activeSensor.icon className={`w-24 h-24 mb-4 ${activeSensor.color} drop-shadow-sm`} />
-                <span className="text-xl font-medium uppercase tracking-widest">{activeSensor.label}</span>
-                <div className="mt-4 flex items-baseline gap-2">
-                  <span className="text-5xl font-bold text-gray-800 dark:text-gray-100">{saved.min} - {saved.max}</span>
-                  <span className="text-2xl font-semibold">{activeSensor.unit}</span>
+                <activeSensor.icon className={`w-20 h-20 mb-3 ${activeSensor.color} drop-shadow-sm transition-all duration-300`} />
+                <span className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500">{activeSensor.label}</span>
+                <div className="mt-3 flex items-baseline gap-2">
+                  <span className="text-5xl font-bold text-gray-800 dark:text-gray-100 tracking-tight">{saved.min} – {saved.max}</span>
+                  <span className="text-xl font-semibold text-gray-400">{activeSensor.unit}</span>
                 </div>
                 {isAutoMode && (
-                  <div className="mt-3 flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-emerald-500" />
-                    <span className="text-[12px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">ML Optimized</span>
+                  <div className="mt-3 flex items-center gap-1.5 bg-emerald-500/10 px-3 py-1 rounded-full">
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
+                    <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">ML Optimized</span>
                   </div>
                 )}
               </>
@@ -396,11 +429,12 @@ export default function Threshold() {
           </div>
 
           {/* Threshold Controls */}
-          <div className={`flex items-center gap-6 transition-opacity duration-300 ${isAutoMode ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
+          <div className={`flex items-center gap-8 mt-10 transition-all duration-300 ${isAutoMode ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}>
+
             {/* Min Control */}
             <div className="flex flex-col items-center gap-2">
-              <div className="flex items-center bg-[#D9D9D9] dark:bg-gray-700 rounded-full px-6 py-3 transition-colors gap-2 min-w-[140px] justify-between group">
-                <div className="flex items-baseline gap-1 ml-2">
+              <div className="flex items-center bg-white dark:bg-gray-800 rounded-2xl px-5 py-3 border border-gray-200/70 dark:border-gray-700/50 shadow-sm gap-2 min-w-[150px] justify-between">
+                <div className="flex items-baseline gap-1 ml-1">
                   <ThresholdInput
                     type="min"
                     value={currentThreshold.min}
@@ -408,22 +442,22 @@ export default function Threshold() {
                     step={activeSensor.unit === '' ? 0.1 : 1}
                     disabled={isAutoMode}
                   />
-                  <span className="text-[16px] text-gray-500 dark:text-gray-400">{activeSensor.unit}</span>
+                  <span className="text-[14px] text-gray-400 dark:text-gray-500 font-medium">{activeSensor.unit}</span>
                 </div>
-                <div className="flex flex-col">
-                  <button onClick={() => handleUpdateThreshold('min', 1)} disabled={isAutoMode} className="hover:text-green-600 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"><ChevronDown className="w-4 h-4 rotate-180" /></button>
-                  <button onClick={() => handleUpdateThreshold('min', -1)} disabled={isAutoMode} className="hover:text-red-600 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"><ChevronDown className="w-4 h-4" /></button>
+                <div className="flex flex-col gap-0.5">
+                  <button onClick={() => handleUpdateThreshold('min', 1)} disabled={isAutoMode} className="hover:text-green-600 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-30 text-gray-400"><ChevronDown className="w-4 h-4 rotate-180" /></button>
+                  <button onClick={() => handleUpdateThreshold('min', -1)} disabled={isAutoMode} className="hover:text-red-600 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-30 text-gray-400"><ChevronDown className="w-4 h-4" /></button>
                 </div>
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Minimum</span>
+              <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">Minimum</span>
             </div>
 
-            <span className="text-2xl text-gray-600 dark:text-gray-400 font-medium mb-6">-</span>
+            <span className="text-2xl text-gray-300 dark:text-gray-600 font-light mb-5">—</span>
 
             {/* Max Control */}
             <div className="flex flex-col items-center gap-2">
-              <div className="flex items-center bg-[#D9D9D9] dark:bg-gray-700 rounded-full px-6 py-3 transition-colors gap-2 min-w-[140px] justify-between group">
-                <div className="flex items-baseline gap-1 ml-2">
+              <div className="flex items-center bg-white dark:bg-gray-800 rounded-2xl px-5 py-3 border border-gray-200/70 dark:border-gray-700/50 shadow-sm gap-2 min-w-[150px] justify-between">
+                <div className="flex items-baseline gap-1 ml-1">
                   <ThresholdInput
                     type="max"
                     value={currentThreshold.max}
@@ -431,14 +465,14 @@ export default function Threshold() {
                     step={activeSensor.unit === '' ? 0.1 : 1}
                     disabled={isAutoMode}
                   />
-                  <span className="text-[16px] text-gray-500 dark:text-gray-400">{activeSensor.unit}</span>
+                  <span className="text-[14px] text-gray-400 dark:text-gray-500 font-medium">{activeSensor.unit}</span>
                 </div>
-                <div className="flex flex-col">
-                  <button onClick={() => handleUpdateThreshold('max', 1)} disabled={isAutoMode} className="hover:text-green-600 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"><ChevronDown className="w-4 h-4 rotate-180" /></button>
-                  <button onClick={() => handleUpdateThreshold('max', -1)} disabled={isAutoMode} className="hover:text-red-600 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"><ChevronDown className="w-4 h-4" /></button>
+                <div className="flex flex-col gap-0.5">
+                  <button onClick={() => handleUpdateThreshold('max', 1)} disabled={isAutoMode} className="hover:text-green-600 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-30 text-gray-400"><ChevronDown className="w-4 h-4 rotate-180" /></button>
+                  <button onClick={() => handleUpdateThreshold('max', -1)} disabled={isAutoMode} className="hover:text-red-600 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-30 text-gray-400"><ChevronDown className="w-4 h-4" /></button>
                 </div>
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Maximum</span>
+              <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">Maximum</span>
             </div>
           </div>
 
@@ -449,7 +483,7 @@ export default function Threshold() {
               disabled={!hasChanges || saving}
               className={`mt-6 px-8 py-3 rounded-full font-semibold text-sm uppercase tracking-wider transition-all duration-300 flex items-center gap-2 shadow-md ${hasChanges && !saving
                   ? 'bg-[#385344] hover:bg-[#2d4438] text-white cursor-pointer hover:shadow-lg hover:scale-[1.02] active:scale-95'
-                  : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
                 }`}
             >
               {saving ? (
@@ -467,52 +501,8 @@ export default function Threshold() {
               )}
             </button>
           )}
-
-          {/* Connection info */}
-          <div className="mt-4 flex items-center gap-2 text-[11px] text-gray-400 dark:text-gray-500">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-            <span>Terhubung ke ESP32 via Supabase · Perubahan langsung diterapkan</span>
-          </div>
-
         </div>
-
-        {/* Right Selection List */}
-        <div className="w-[200px] flex flex-col items-end justify-center gap-6 shrink-0 relative pr-0">
-          {SENSORS.map(sensor => {
-            const Icon = sensor.icon;
-            const isActive = activeSensorId === sensor.id;
-
-            if (isActive) {
-              const parts = sensor.label.split(' ');
-              return (
-                <div key={sensor.id} className={`${isAutoMode ? 'bg-gradient-to-r from-emerald-600 to-teal-600' : 'bg-[#385344]'} text-white rounded-l-[50px] p-3 pl-4 pr-12 w-[115%] mr-[-15%] flex items-center gap-4 shadow-lg z-10 transition-colors -ml-10`}>
-                  <div className="w-14 h-14 bg-[#D9D9D9] dark:bg-gray-300 rounded-full shrink-0 flex items-center justify-center">
-                    <Icon className={`w-7 h-7 ${sensor.color}`} />
-                  </div>
-                  <div className="flex flex-col text-[17px] font-medium leading-tight">
-                    {parts.map((part, index) => (
-                      <span key={index}>{part}</span>
-                    ))}
-                  </div>
-                </div>
-              );
-            }
-
-            return (
-              <div
-                key={sensor.id}
-                onClick={() => setActiveSensorId(sensor.id)}
-                className="w-14 h-14 bg-[#D9D9D9] mr-8 dark:bg-gray-700 rounded-full cursor-pointer hover:scale-105 transition-all hover:bg-gray-300 dark:hover:bg-gray-600 flex items-center justify-center shadow-sm"
-                title={sensor.label}
-              >
-                <Icon className={`w-6 h-6 ${sensor.color}`} />
-              </div>
-            );
-          })}
-        </div>
-
       </div>
-
     </div>
   );
 }
