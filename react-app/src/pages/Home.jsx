@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import {
   Sun,
@@ -9,10 +9,12 @@ import {
   SunMedium,
   FlaskConical,
   Waves,
-  Thermometer
+  Thermometer,
+  Loader2
 } from 'lucide-react';
 import NotificationDropdown from '../components/NotificationDropdown';
 import LiveClock from '../components/LiveClock';
+import { useSensorData } from '../hooks/useSensorData';
 import {
   AreaChart,
   Area,
@@ -23,22 +25,16 @@ import {
   Tooltip,
   ReferenceLine
 } from 'recharts';
+import { useAuth } from '../context/AuthContext';
 
-// Dummy data for charts
-const generateChartData = (baseVal, volatility, points = 24) => {
-  return Array.from({ length: points }, (_, i) => ({
-    time: i,
-    value: parseFloat((baseVal + Math.sin(i / 2) * volatility + (Math.random() - 0.5) * volatility * 0.5).toFixed(2))
-  }));
-};
-
-const chartData = {
-  temperature: generateChartData(23, 3),
-  humidity: generateChartData(82, 8),
-  light: generateChartData(3200, 600),
-  ph: generateChartData(6, 1.5),
-  tds: generateChartData(1000, 400),
-  suhuLarutan: generateChartData(23, 3)
+// DB column name mapping
+const DB_MAP = {
+  'Suhu Rumah Kaca': 'suhu-rumah-kaca',
+  'Kelembapan': 'kelembapan',
+  'Intensitas Cahaya': 'intensitas-cahaya',
+  'pH': 'ph',
+  'TDS': 'tds',
+  'Suhu Larutan': 'suhu-larutan'
 };
 
 // Optimal ranges for plant growth
@@ -60,6 +56,42 @@ const chartThemes = {
   'TDS': { light: '#14B8A6', dark: '#2DD4BF', gradient: ['#14B8A6', '#99F6E4'] },
   'Suhu Larutan': { light: '#F43F5E', dark: '#FB7185', gradient: ['#F43F5E', '#FECDD3'] }
 };
+
+// Process raw data into 24-hour chart buckets
+function processChartData(rawData, dbKey) {
+  const now = new Date();
+  const buckets = Array(24).fill().map((_, i) => ({ time: i, value: null, sum: 0, count: 0 }));
+
+  rawData.forEach(row => {
+    const d = new Date(row.created_at);
+    if (d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
+      const hour = d.getHours();
+      const val = row[dbKey];
+      if (val !== undefined && val !== null) {
+        buckets[hour].sum += val;
+        buckets[hour].count++;
+      }
+    }
+  });
+
+  return buckets.map(b => ({
+    time: b.time,
+    value: b.count > 0 ? parseFloat((b.sum / b.count).toFixed(2)) : null
+  }));
+}
+
+// Get latest sensor value from raw data
+function getLatestValue(rawData, dbKey) {
+  if (!rawData || rawData.length === 0) return null;
+  // rawData is sorted ascending by created_at, so last element is newest
+  for (let i = rawData.length - 1; i >= 0; i--) {
+    const val = rawData[i][dbKey];
+    if (val !== undefined && val !== null) {
+      return parseFloat(val).toFixed(1);
+    }
+  }
+  return null;
+}
 
 const CustomAxisTick = ({ x, y, payload, timeRange }) => {
   let left = "00.00", mid = "12.00", right = "24.00";
@@ -90,7 +122,7 @@ const CustomTooltip = ({ active, payload, label, unit, color }) => {
           {`${String(label).padStart(2, '0')}.00`}
         </p>
         <p style={{ fontSize: '16px', fontWeight: 700, color: color, letterSpacing: '-0.02em' }}>
-          {payload[0].value}{unit}
+          {payload[0].value !== null ? `${payload[0].value}${unit}` : '—'}
         </p>
       </div>
     );
@@ -98,20 +130,30 @@ const CustomTooltip = ({ active, payload, label, unit, color }) => {
   return null;
 };
 
-const HistoryChart = ({ title, data, yDomain, yTicks, isDark, unit = '', optimalRange }) => {
+const HistoryChart = ({ title, data, yDomain, isDark, unit = '', optimalRange }) => {
   const theme = chartThemes[title] || chartThemes['Suhu Rumah Kaca'];
   const lineColor = isDark ? theme.dark : theme.light;
   const gradientId = `gradient-${title.replace(/\s/g, '-')}`;
 
-  // Generate better y-axis ticks (3 ticks: min, mid, max)
   const yMin = yDomain[0];
   const yMax = yDomain[1];
   const yMid = parseFloat(((yMin + yMax) / 2).toFixed(1));
   const betterYTicks = [yMin, yMid, yMax];
 
+  // Compute min, max, average from actual data points
+  const validValues = data.filter(d => d.value !== null).map(d => d.value);
+  const stats = validValues.length > 0
+    ? {
+        min: Math.min(...validValues).toFixed(1),
+        max: Math.max(...validValues).toFixed(1),
+        avg: (validValues.reduce((a, b) => a + b, 0) / validValues.length).toFixed(1),
+        hasData: true,
+      }
+    : { min: '—', max: '—', avg: '—', hasData: false };
+
   const handleDownloadCSV = () => {
     const headers = ['Time', title];
-    const rows = data.map(point => [point.time, point.value.toFixed(2)]);
+    const rows = data.map(point => [point.time, point.value !== null ? point.value.toFixed(2) : '']);
     const csvContent = "data:text/csv;charset=utf-8,"
       + headers.join(",") + "\n"
       + rows.map(e => e.join(",")).join("\n");
@@ -119,7 +161,7 @@ const HistoryChart = ({ title, data, yDomain, yTicks, isDark, unit = '', optimal
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `${title.toLowerCase()}_data_per-hour.csv`);
+    link.setAttribute("download", `${title.toLowerCase()}_data_24h.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -223,21 +265,93 @@ const HistoryChart = ({ title, data, yDomain, yTicks, isDark, unit = '', optimal
               isAnimationActive={true}
               animationDuration={800}
               animationEasing="ease-out"
+              connectNulls={false}
             />
           </AreaChart>
         </ResponsiveContainer>
+      </div>
+
+      {/* Stats Row: Min, Max, Rata-Rata */}
+      <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-gray-700/40">
+        <div className="flex items-center gap-1.5">
+          <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+          <span className="text-[11px] text-gray-400 dark:text-gray-500 font-medium">Min</span>
+          <span className="text-[13px] font-bold text-gray-700 dark:text-gray-200 ml-0.5">{stats.min}<span className="text-[10px] font-medium text-gray-400 ml-0.5">{stats.hasData ? unit.trim() : ''}</span></span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+          <span className="text-[11px] text-gray-400 dark:text-gray-500 font-medium">Maks</span>
+          <span className="text-[13px] font-bold text-gray-700 dark:text-gray-200 ml-0.5">{stats.max}<span className="text-[10px] font-medium text-gray-400 ml-0.5">{stats.hasData ? unit.trim() : ''}</span></span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: lineColor }}></div>
+          <span className="text-[11px] text-gray-400 dark:text-gray-500 font-medium">Rata-Rata</span>
+          <span className="text-[13px] font-bold text-gray-700 dark:text-gray-200 ml-0.5">{stats.avg}<span className="text-[10px] font-medium text-gray-400 ml-0.5">{stats.hasData ? unit.trim() : ''}</span></span>
+        </div>
       </div>
     </div>
   );
 };
 
-import { useAuth } from '../context/AuthContext';
+function ReadingCard({ title, value, unit, icon, colorClass = "from-emerald-500 to-green-500", iconColor = "text-emerald-500", bgLight = "bg-emerald-50", bgDark = "dark:bg-emerald-500/10", loading }) {
+  return (
+    <div className={`relative overflow-hidden bg-white/70 dark:bg-gray-800/60 backdrop-blur-md rounded-[24px] p-6 border border-white/40 dark:border-gray-700/50 flex flex-col justify-between min-h-[160px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 group`}>
+      {/* Soft gradient background hint */}
+      <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${colorClass} opacity-10 dark:opacity-20 rounded-full blur-2xl -mr-10 -mt-10 transition-opacity group-hover:opacity-20 dark:group-hover:opacity-30`}></div>
+
+      <div className="flex justify-between items-start relative z-10 w-full mb-6">
+        <h3 className="text-[17px] font-medium text-gray-700 dark:text-gray-300 leading-snug tracking-wide">{title}</h3>
+        {icon && (
+          <div className={`p-2.5 rounded-2xl ${bgLight} ${bgDark} shadow-sm backdrop-blur-md transition-transform duration-300 group-hover:scale-110 ml-2 shrink-0 border border-white/50 dark:border-gray-700/30`}>
+            {React.cloneElement(icon, { className: `w-5 h-5 ${iconColor} stroke-[2.5]` })}
+          </div>
+        )}
+      </div>
+      <div className="flex items-baseline gap-1 relative z-10">
+        {loading ? (
+          <div className="flex items-center gap-2">
+            <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+            <span className="text-sm text-gray-400">Loading...</span>
+          </div>
+        ) : (
+          <>
+            <span className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-gray-800 to-gray-600 dark:from-white dark:to-gray-300 tracking-tight drop-shadow-sm leading-none">{value ?? '—'}</span>
+            {unit && (
+              <span className="text-lg font-medium text-gray-400 dark:text-gray-500 ml-1 mb-1">{unit}</span>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function Home() {
   const { isDark, toggleTheme } = useOutletContext();
   const navigate = useNavigate();
   const { user } = useAuth();
-  
+  const { rawData, loading } = useSensorData();
+
+  // Get the latest value for each sensor
+  const latestValues = useMemo(() => ({
+    temperature: getLatestValue(rawData, DB_MAP['Suhu Rumah Kaca']),
+    humidity: getLatestValue(rawData, DB_MAP['Kelembapan']),
+    light: getLatestValue(rawData, DB_MAP['Intensitas Cahaya']),
+    ph: getLatestValue(rawData, DB_MAP['pH']),
+    tds: getLatestValue(rawData, DB_MAP['TDS']),
+    suhuLarutan: getLatestValue(rawData, DB_MAP['Suhu Larutan']),
+  }), [rawData]);
+
+  // Process chart data for today's 24-hour view
+  const chartData = useMemo(() => ({
+    temperature: processChartData(rawData, DB_MAP['Suhu Rumah Kaca']),
+    humidity: processChartData(rawData, DB_MAP['Kelembapan']),
+    light: processChartData(rawData, DB_MAP['Intensitas Cahaya']),
+    ph: processChartData(rawData, DB_MAP['pH']),
+    tds: processChartData(rawData, DB_MAP['TDS']),
+    suhuLarutan: processChartData(rawData, DB_MAP['Suhu Larutan']),
+  }), [rawData]);
+
   return (
     <div className="flex-1 flex flex-col h-screen overflow-y-auto px-6 md:px-10 lg:px-14 py-8 md:py-10 animate-page-enter relative z-0">
       {/* Decorative background blobs */}
@@ -246,7 +360,7 @@ export default function Home() {
 
       {/* Top Header */}
       <header className="flex justify-between items-center mb-10 mt-2">
-        <h1 className="text-3xl md:text-4xl font-semibold text-gray-800 dark:text-white tracking-tight">Dashborad Monitoring</h1>
+        <h1 className="text-3xl md:text-4xl font-semibold text-gray-800 dark:text-white tracking-tight">Dashboard Monitoring</h1>
 
         <div className="flex items-center gap-4 md:gap-6">
           <NotificationDropdown />
@@ -293,38 +407,51 @@ export default function Home() {
           <div className="flex items-center gap-3 mb-6">
             <div className="w-1.5 h-6 bg-[#1E463A] dark:bg-green-500 rounded-full"></div>
             <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 tracking-wide">Live Monitoring</h2>
+            {loading && <Loader2 className="w-4 h-4 text-gray-400 animate-spin ml-1" />}
+            {!loading && rawData.length > 0 && (
+              <div className="flex items-center gap-1.5 ml-2">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">Live dari Supabase</span>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
             <ReadingCard
-              title="Suhu Rumah Kaca" value="23" unit="°C"
+              title="Suhu Rumah Kaca" value={latestValues.temperature} unit="°C"
               icon={<ThermometerSun />}
               colorClass="from-orange-500 to-red-500" iconColor="text-orange-500" bgLight="bg-orange-50" bgDark="dark:bg-orange-500/10"
+              loading={loading}
             />
             <ReadingCard
-              title="Kelembapan" value="80" unit="%"
+              title="Kelembapan" value={latestValues.humidity} unit="%"
               icon={<Droplets />}
               colorClass="from-blue-400 to-cyan-500" iconColor="text-blue-500" bgLight="bg-blue-50" bgDark="dark:bg-blue-500/10"
+              loading={loading}
             />
             <ReadingCard
-              title="Intensitas Cahaya" value="400" unit="lux"
+              title="Intensitas Cahaya" value={latestValues.light} unit="lux"
               icon={<SunMedium />}
               colorClass="from-yellow-400 to-amber-500" iconColor="text-yellow-500" bgLight="bg-yellow-50" bgDark="dark:bg-yellow-500/10"
+              loading={loading}
             />
             <ReadingCard
-              title="pH" value="5.6" unit=""
+              title="pH" value={latestValues.ph} unit=""
               icon={<FlaskConical />}
               colorClass="from-purple-500 to-pink-500" iconColor="text-purple-500" bgLight="bg-purple-50" bgDark="dark:bg-purple-500/10"
+              loading={loading}
             />
             <ReadingCard
-              title="TDS" value="550" unit="ppm"
+              title="TDS" value={latestValues.tds} unit="ppm"
               icon={<Waves />}
               colorClass="from-teal-400 to-emerald-500" iconColor="text-teal-500" bgLight="bg-teal-50" bgDark="dark:bg-teal-500/10"
+              loading={loading}
             />
             <ReadingCard
-              title="Suhu Larutan" value="25" unit="°C"
+              title="Suhu Larutan" value={latestValues.suhuLarutan} unit="°C"
               icon={<Thermometer />}
               colorClass="from-rose-400 to-red-500" iconColor="text-rose-500" bgLight="bg-rose-50" bgDark="dark:bg-rose-500/10"
+              loading={loading}
             />
           </div>
         </section>
@@ -341,7 +468,6 @@ export default function Home() {
               title="Suhu Rumah Kaca"
               data={chartData.temperature}
               yDomain={[15, 30]}
-              yTicks={[15, 30]}
               isDark={isDark}
               unit="°C"
               optimalRange={optimalRanges['Suhu Rumah Kaca']}
@@ -350,7 +476,6 @@ export default function Home() {
               title="Kelembapan"
               data={chartData.humidity}
               yDomain={[50, 100]}
-              yTicks={[50, 100]}
               isDark={isDark}
               unit="%"
               optimalRange={optimalRanges['Kelembapan']}
@@ -359,7 +484,6 @@ export default function Home() {
               title="Intensitas Cahaya"
               data={chartData.light}
               yDomain={[1500, 5000]}
-              yTicks={[1500, 5000]}
               isDark={isDark}
               unit=" lux"
               optimalRange={optimalRanges['Intensitas Cahaya']}
@@ -368,7 +492,6 @@ export default function Home() {
               title="pH"
               data={chartData.ph}
               yDomain={[3, 9]}
-              yTicks={[3, 9]}
               isDark={isDark}
               unit=""
               optimalRange={optimalRanges['pH']}
@@ -377,7 +500,6 @@ export default function Home() {
               title="TDS"
               data={chartData.tds}
               yDomain={[300, 2000]}
-              yTicks={[300, 2000]}
               isDark={isDark}
               unit=" ppm"
               optimalRange={optimalRanges['TDS']}
@@ -386,37 +508,12 @@ export default function Home() {
               title="Suhu Larutan"
               data={chartData.suhuLarutan}
               yDomain={[20, 30]}
-              yTicks={[20, 30]}
               isDark={isDark}
               unit="°C"
               optimalRange={optimalRanges['Suhu Larutan']}
             />
           </div>
         </section>
-      </div>
-    </div>
-  );
-}
-
-function ReadingCard({ title, value, unit, icon, colorClass = "from-emerald-500 to-green-500", iconColor = "text-emerald-500", bgLight = "bg-emerald-50", bgDark = "dark:bg-emerald-500/10" }) {
-  return (
-    <div className={`relative overflow-hidden bg-white/70 dark:bg-gray-800/60 backdrop-blur-md rounded-[24px] p-6 border border-white/40 dark:border-gray-700/50 flex flex-col justify-between min-h-[160px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 group`}>
-      {/* Soft gradient background hint */}
-      <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${colorClass} opacity-10 dark:opacity-20 rounded-full blur-2xl -mr-10 -mt-10 transition-opacity group-hover:opacity-20 dark:group-hover:opacity-30`}></div>
-
-      <div className="flex justify-between items-start relative z-10 w-full mb-6">
-        <h3 className="text-[17px] font-medium text-gray-700 dark:text-gray-300 leading-snug tracking-wide">{title}</h3>
-        {icon && (
-          <div className={`p-2.5 rounded-2xl ${bgLight} ${bgDark} shadow-sm backdrop-blur-md transition-transform duration-300 group-hover:scale-110 ml-2 shrink-0 border border-white/50 dark:border-gray-700/30`}>
-            {React.cloneElement(icon, { className: `w-5 h-5 ${iconColor} stroke-[2.5]` })}
-          </div>
-        )}
-      </div>
-      <div className="flex items-baseline gap-1 relative z-10">
-        <span className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-gray-800 to-gray-600 dark:from-white dark:to-gray-300 tracking-tight drop-shadow-sm leading-none">{value}</span>
-        {unit && (
-          <span className="text-lg font-medium text-gray-400 dark:text-gray-500 ml-1 mb-1">{unit}</span>
-        )}
       </div>
     </div>
   );
