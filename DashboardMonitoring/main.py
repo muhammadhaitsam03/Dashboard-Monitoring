@@ -1,8 +1,16 @@
 from fastapi import FastAPI, Depends, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from dependencies import get_current_user
-from database import supabase
-from datetime import datetime, timezone
+from DashboardMonitoring.dependencies import get_current_user
+from DashboardMonitoring.database import supabase
+from datetime import datetime, timezone, timedelta
+from pathlib import Path
+from typing import Any, Literal, Optional
+import csv
+import os
+from zoneinfo import ZoneInfo
+import json
+from urllib.request import Request as UrlRequest, urlopen
+from urllib.error import URLError, HTTPError
 
 app = FastAPI(title="Monitoring Dashboard API")
 
@@ -99,6 +107,239 @@ def check_thresholds_and_update_actuators(payload: dict):
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Monitoring Dashboard API"}
+
+def _repo_root() -> Path:
+    return Path(__file__).resolve().parents[1]
+
+def _ai_model_dir() -> Path:
+    return _repo_root() / "Ai_model"
+
+def _parse_float(v: Any) -> Optional[float]:
+    try:
+        if v is None:
+            return None
+        return float(v)
+    except Exception:
+        return None
+
+def _get_tz() -> ZoneInfo:
+    name = os.environ.get("FORECAST_TZ", "Asia/Jakarta")
+    try:
+        return ZoneInfo(name)
+    except Exception:
+        try:
+            return ZoneInfo("Asia/Jakarta")
+        except Exception:
+            # Windows machines may lack tzdata; fall back to WIB fixed offset (+07:00)
+            return timezone(timedelta(hours=7))
+
+def _parse_now_param(now: Optional[str]) -> Optional[datetime]:
+    if not now:
+        return None
+    try:
+        s = now.replace("Z", "+00:00")
+        dt = datetime.fromisoformat(s)
+        tz = _get_tz()
+        if dt.tzinfo is None:
+            return dt.replace(tzinfo=tz)
+        return dt.astimezone(tz)
+    except Exception:
+        return None
+
+def _floor_to_hour(dt: datetime) -> datetime:
+    return dt.replace(minute=0, second=0, microsecond=0)
+
+def _read_prediction_forecast_rows() -> list[dict[str, Any]]:
+    """
+    Reads Ai_model/prediction_forecast.csv:
+    time,suhu,cuaca,humidity,light_intensity,ph,precipitation
+    """
+    csv_path = _ai_model_dir() / "prediction_forecast.csv"
+    if not csv_path.exists():
+        raise HTTPException(status_code=404, detail=f"Forecast CSV not found at {csv_path}")
+
+    rows: list[dict[str, Any]] = []
+    with csv_path.open("r", encoding="utf-8", newline="") as f:
+        reader = csv.DictReader(f)
+        for r in reader:
+            t = r.get("time")
+            if not t:
+                continue
+            try:
+                dt = datetime.strptime(t, "%Y-%m-%d %H:%M:%S")
+            except Exception:
+                continue
+
+            rows.append(
+                {
+                    "time": dt.isoformat(),
+                    "suhu": _parse_float(r.get("suhu")),
+                    "cuaca": _parse_float(r.get("cuaca")),
+                    "humidity": _parse_float(r.get("humidity")),
+                    "light_intensity": _parse_float(r.get("light_intensity")),
+                    "ph": _parse_float(r.get("ph")),
+                    "precipitation": _parse_float(r.get("precipitation")),
+                }
+            )
+
+    rows.sort(key=lambda x: x["time"])
+    return rows
+
+def _weather_label(code: Optional[float]) -> str:
+    if code is None:
+        return "unknown"
+    c = int(round(code))
+    return {
+        0: "clear",
+        1: "cloudy",
+        2: "rain",
+        3: "storm",
+    }.get(c, f"code_{c}")
+
+def _find_row_index_at_or_after(rows: list[dict[str, Any]], target: datetime) -> int:
+    # CSV times are treated as local wall-clock timestamps (no tz offset in file)
+    t_iso = target.replace(tzinfo=None).isoformat()
+    for i, r in enumerate(rows):
+        if r["time"] >= t_iso:
+            return i
+    return max(0, len(rows) - 1)
+
+@app.get("/api/forecast")
+def get_forecast(hours: int = 24, now: Optional[str] = None):
+    """
+    Forecast values sourced from Ai_model/prediction_forecast.csv.
+    - hours: number of rows to return starting from the current hour.
+    - now: optional ISO timestamp from client to align with real local time.
+    """
+    rows = _read_prediction_forecast_rows()
+    if not rows:
+        raise HTTPException(status_code=500, detail="Forecast CSV is empty or unreadable")
+
+    tz = _get_tz()
+    client_now = _parse_now_param(now)
+    effective_now = client_now or datetime.now(tz)
+    effective_now = _floor_to_hour(effective_now)
+
+    start_idx = _find_row_index_at_or_after(rows, effective_now)
+    end_idx = min(len(rows), start_idx + max(1, min(168, hours)))
+    window = rows[start_idx:end_idx]
+    current = window[0] if window else rows[start_idx]
+
+    return {
+        "source": "prediction_forecast.csv",
+        "timezone": str(tz),
+        "now_hour": effective_now.isoformat(),
+        "current_hour": {
+            **current,
+            "cuaca_label": _weather_label(current.get("cuaca")),
+        },
+        "next": [
+            {
+                **r,
+                "cuaca_label": _weather_label(r.get("cuaca")),
+            }
+            for r in window
+        ],
+    }
+
+def _heuristic_recommendation(current: dict[str, Any], forecast: list[dict[str, Any]]) -> str:
+    def _n(v: Any) -> Optional[float]:
+        try:
+            if v is None:
+                return None
+            x = float(v)
+            return x
+        except Exception:
+            return None
+
+    suhu = _n(current.get("suhu_rumah_kaca") or current.get("suhu") or current.get("temperature"))
+    hum = _n(current.get("kelembapan") or current.get("humidity"))
+    light = _n(current.get("intensitas_cahaya") or current.get("light") or current.get("light_intensity"))
+    ph = _n(current.get("ph"))
+
+    notes: list[str] = []
+    if suhu is not None and suhu > 24:
+        notes.append("Suhu terlalu tinggi; tingkatkan ventilasi/kipas atau pendinginan untuk mendekati 18–24°C.")
+    elif suhu is not None and suhu < 18:
+        notes.append("Suhu terlalu rendah; pertimbangkan pemanas/isolasi agar mendekati 18–24°C.")
+
+    if hum is not None:
+        # accept either 0-1 or percent
+        hum_norm = hum if hum <= 1.5 else (hum / 100.0)
+        if hum_norm > 0.70:
+            notes.append("Kelembapan tinggi; tingkatkan sirkulasi udara agar stabil di 0.50–0.70.")
+        elif hum_norm < 0.50:
+            notes.append("Kelembapan rendah; pertimbangkan humidifier/misting agar stabil di 0.50–0.70.")
+
+    if light is not None and light < 150:
+        notes.append("Intensitas cahaya rendah; tingkatkan pencahayaan (sesuaikan dengan unit sensor).")
+    elif light is not None and light > 600:
+        notes.append("Intensitas cahaya tinggi; pertimbangkan shading atau atur photoperiod untuk menghindari stress.")
+
+    if ph is not None and (ph < 6.0 or ph > 7.0):
+        notes.append("pH di luar 6.0–7.0; lakukan koreksi bertahap dan ukur ulang setelah stabil.")
+
+    if forecast:
+        lbl = forecast[0].get("cuaca_label")
+        if lbl in ("rain", "storm"):
+            notes.append("Perkiraan cuaca buruk; antisipasi lonjakan kelembapan dan lindungi perangkat.")
+
+    if not notes:
+        return "Kondisi saat ini terlihat stabil. Lanjutkan monitoring dan lakukan penyesuaian bertahap."
+    return " ".join(notes)
+
+def _ollama_chat(prompt: str) -> str:
+    base = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434").rstrip("/")
+    model = os.environ.get("OLLAMA_MODEL", "qwen2.5:14b")
+    url = f"{base}/api/chat"
+    body = {
+        "model": model,
+        "messages": [
+            {
+                "role": "system",
+                "content": "You are an agronomy assistant for a greenhouse hydroponic system. Be concise, actionable, and avoid unsafe advice.",
+            },
+            {"role": "user", "content": prompt},
+        ],
+        "stream": False,
+    }
+    req = UrlRequest(
+        url,
+        data=json.dumps(body).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    with urlopen(req, timeout=20) as resp:
+        data = json.loads(resp.read().decode("utf-8"))
+        msg = (data or {}).get("message") or {}
+        return str(msg.get("content") or "").strip()
+
+@app.post("/api/recommendation")
+async def recommend(request: Request):
+    """
+    Returns recommendations from local LLM (Ollama) if available,
+    otherwise falls back to a heuristic recommender.
+    """
+    payload = await request.json()
+    current = payload.get("current") or {}
+    forecast = payload.get("forecast") or []
+
+    prompt = (
+        "Given these greenhouse readings and forecast, give 3-6 bullet recommendations.\n\n"
+        f"CURRENT:\n{json.dumps(current, ensure_ascii=False)}\n\n"
+        f"FORECAST(next):\n{json.dumps(forecast[:12], ensure_ascii=False)}\n"
+    )
+
+    provider: Literal["ollama", "none"] = os.environ.get("RECO_PROVIDER", "ollama")
+    if provider == "ollama":
+        try:
+            text = _ollama_chat(prompt)
+            if text:
+                return {"provider": "ollama", "text": text}
+        except (URLError, HTTPError, TimeoutError, Exception):
+            pass
+
+    return {"provider": "heuristic", "text": _heuristic_recommendation(current, forecast)}
 
 @app.get("/api/secure-data")
 def read_secure_data(user = Depends(get_current_user)):

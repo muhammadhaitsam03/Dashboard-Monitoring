@@ -1,6 +1,6 @@
 from fastapi import HTTPException, Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from database import supabase
+from DashboardMonitoring.database import supabase
 
 security = HTTPBearer()
 
