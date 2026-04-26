@@ -71,3 +71,29 @@ CREATE POLICY "Allow authenticated update sensor_thresholds" ON sensor_threshold
 
 CREATE POLICY "Allow service role all sensor_thresholds" ON sensor_thresholds
   FOR ALL USING (true);
+
+-- ============================================
+-- 5. Storage Bucket for Avatars
+-- ============================================
+INSERT INTO storage.buckets (id, name, public) VALUES ('avatars', 'avatars', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Allow public access to view avatars
+CREATE POLICY "Avatar images are publicly accessible."
+  ON storage.objects FOR SELECT
+  USING ( bucket_id = 'avatars' );
+
+-- Allow authenticated users to upload avatars
+CREATE POLICY "Users can upload an avatar."
+  ON storage.objects FOR INSERT
+  WITH CHECK ( bucket_id = 'avatars' AND auth.role() = 'authenticated' );
+
+-- Allow authenticated users to update their avatars
+CREATE POLICY "Users can update their avatar."
+  ON storage.objects FOR UPDATE
+  WITH CHECK ( bucket_id = 'avatars' AND auth.role() = 'authenticated' );
+
+-- Allow authenticated users to delete their avatars
+CREATE POLICY "Users can delete their avatar."
+  ON storage.objects FOR DELETE
+  USING ( bucket_id = 'avatars' AND auth.role() = 'authenticated' );

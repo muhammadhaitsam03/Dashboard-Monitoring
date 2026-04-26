@@ -23,7 +23,6 @@ import { useAuth } from '../context/AuthContext';
 
 const SENSORS = [
   { id: 'suhu_rumah_kaca', label: 'Suhu Rumah Kaca', shortLabel: 'Suhu Kaca', icon: ThermometerSun, unit: '°C', defaultMin: 20, defaultMax: 27, color: 'text-orange-500', bg: 'bg-orange-50 dark:bg-orange-500/10', ring: 'ring-orange-200 dark:ring-orange-800/40' },
-  { id: 'kelembapan', label: 'Kelembapan', shortLabel: 'Kelembapan', icon: Droplets, unit: '%', defaultMin: 60, defaultMax: 80, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-500/10', ring: 'ring-blue-200 dark:ring-blue-800/40' },
   { id: 'intensitas_cahaya', label: 'Intensitas Cahaya', shortLabel: 'Cahaya', icon: SunMedium, unit: 'lux', defaultMin: 300, defaultMax: 500, color: 'text-yellow-500', bg: 'bg-yellow-50 dark:bg-yellow-500/10', ring: 'ring-yellow-200 dark:ring-yellow-800/40' },
   { id: 'ph', label: 'pH', shortLabel: 'pH', icon: FlaskConical, unit: '', defaultMin: 5.5, defaultMax: 6.5, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-500/10', ring: 'ring-purple-200 dark:ring-purple-800/40' },
   { id: 'tds', label: 'TDS', shortLabel: 'TDS', icon: Waves, unit: 'ppm', defaultMin: 400, defaultMax: 600, color: 'text-teal-500', bg: 'bg-teal-50 dark:bg-teal-500/10', ring: 'ring-teal-200 dark:ring-teal-800/40' },
@@ -33,7 +32,6 @@ const SENSORS = [
 // ML-recommended thresholds (from PatchTST model predictions)
 const ML_RECOMMENDATIONS = {
   suhu_rumah_kaca: { min: 18, max: 24, reason: 'Model prediksi suhu akan naik ke 27.3°C — range lebih rendah untuk antisipasi' },
-  kelembapan: { min: 50, max: 70, reason: 'Prediksi kelembapan 0.83 — range disesuaikan untuk mencegah jamur' },
   intensitas_cahaya: { min: 150, max: 600, reason: 'Forecast cahaya naik ke 618 W/m² — range diperluas' },
   ph: { min: 6.0, max: 7.0, reason: 'pH saat ini 6.62 — optimal untuk selada merah hidroponik' },
   tds: { min: 560, max: 840, reason: 'Konsentrasi nutrisi disesuaikan dengan fase pertumbuhan' },

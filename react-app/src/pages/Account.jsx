@@ -105,6 +105,11 @@ export default function Account() {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 2 * 1024 * 1024) { // 2MB
+        setToast({ type: 'error', message: 'Ukuran foto maksimal adalah 2MB.' });
+        e.target.value = null; // Reset input
+        return;
+      }
       setAvatarFile(file);
       setAvatarPreview(URL.createObjectURL(file));
     }
