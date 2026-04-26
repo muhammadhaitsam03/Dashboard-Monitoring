@@ -3,17 +3,16 @@ import { useNavigate, useOutletContext } from 'react-router-dom';
 import {
   Sun,
   Moon,
+  Loader2,
 } from 'lucide-react';
 import NotificationDropdown from '../components/NotificationDropdown';
 import LiveClock from '../components/LiveClock';
+import { useActuatorStates } from '../hooks/useActuatorStates';
+import { useAuth } from '../context/AuthContext';
 
-// Actuator data with custom SVG icons
-const ACTUATORS = [
-  {
-    id: 'pompa_nutrisi',
-    label: 'Pompa Nutrisi',
-    description: 'Mengatur distribusi larutan nutrisi ke tanaman',
-    isOn: true,
+// Visual config for each actuator (icons, colors, etc.)
+const ACTUATOR_VISUALS = {
+  pompa_nutrisi: {
     colorOn: 'from-teal-400 to-emerald-500',
     iconColor: 'text-teal-500',
     bgLight: 'bg-teal-50',
@@ -27,11 +26,7 @@ const ACTUATORS = [
       </svg>
     )
   },
-  {
-    id: 'pompa_air',
-    label: 'Pompa Air',
-    description: 'Mengatur sirkulasi air dalam sistem hidroponik',
-    isOn: true,
+  pompa_air: {
     colorOn: 'from-blue-400 to-cyan-500',
     iconColor: 'text-blue-500',
     bgLight: 'bg-blue-50',
@@ -44,11 +39,7 @@ const ACTUATORS = [
       </svg>
     )
   },
-  {
-    id: 'kipas',
-    label: 'Kipas Exhaust',
-    description: 'Mengatur sirkulasi udara dan suhu rumah kaca',
-    isOn: false,
+  kipas: {
     colorOn: 'from-orange-400 to-red-500',
     iconColor: 'text-orange-500',
     bgLight: 'bg-orange-50',
@@ -63,11 +54,7 @@ const ACTUATORS = [
       </svg>
     )
   },
-  {
-    id: 'lampu_grow',
-    label: 'Lampu Grow',
-    description: 'Memberikan cahaya tambahan untuk pertumbuhan tanaman',
-    isOn: true,
+  lampu_grow: {
     colorOn: 'from-yellow-400 to-amber-500',
     iconColor: 'text-yellow-500',
     bgLight: 'bg-yellow-50',
@@ -81,11 +68,7 @@ const ACTUATORS = [
       </svg>
     )
   },
-  {
-    id: 'solenoid_valve',
-    label: 'Solenoid Valve',
-    description: 'Mengontrol aliran air masuk ke sistem irigasi',
-    isOn: false,
+  solenoid_valve: {
     colorOn: 'from-purple-400 to-indigo-500',
     iconColor: 'text-purple-500',
     bgLight: 'bg-purple-50',
@@ -100,11 +83,7 @@ const ACTUATORS = [
       </svg>
     )
   },
-  {
-    id: 'misting',
-    label: 'Misting System',
-    description: 'Mengatur kelembapan udara melalui kabut air halus',
-    isOn: true,
+  misting: {
     colorOn: 'from-sky-400 to-blue-500',
     iconColor: 'text-sky-500',
     bgLight: 'bg-sky-50',
@@ -116,22 +95,33 @@ const ACTUATORS = [
       </svg>
     )
   },
-];
+};
+
+// Human-readable sensor names for "triggered_by" display
+const SENSOR_NAMES = {
+  suhu_rumah_kaca: 'Suhu Rumah Kaca',
+  kelembapan: 'Kelembapan',
+  intensitas_cahaya: 'Intensitas Cahaya',
+  ph: 'pH',
+  tds: 'TDS',
+  suhu_larutan: 'Suhu Larutan',
+};
 
 function ActuatorCard({ actuator }) {
-  const Icon = actuator.icon;
-  const isOn = actuator.isOn;
+  const visual = ACTUATOR_VISUALS[actuator.id] || ACTUATOR_VISUALS['pompa_air'];
+  const Icon = visual.icon;
+  const isOn = actuator.is_on;
 
   return (
     <div className={`relative overflow-hidden bg-white/70 dark:bg-gray-800/60 backdrop-blur-md rounded-[24px] p-6 border border-white/40 dark:border-gray-700/50 flex flex-col justify-between min-h-[200px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 group`}>
       {/* Gradient blob */}
-      <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${actuator.colorOn} ${isOn ? 'opacity-15 dark:opacity-25' : 'opacity-5 dark:opacity-10'} rounded-full blur-2xl -mr-10 -mt-10 transition-opacity group-hover:opacity-20 dark:group-hover:opacity-30`}></div>
+      <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${visual.colorOn} ${isOn ? 'opacity-15 dark:opacity-25' : 'opacity-5 dark:opacity-10'} rounded-full blur-2xl -mr-10 -mt-10 transition-opacity group-hover:opacity-20 dark:group-hover:opacity-30`}></div>
 
-      {/* Top row: icon + status */}
+      {/* Top row: icon + label */}
       <div className="flex justify-between items-start relative z-10 w-full mb-4">
         <div className="flex items-center gap-3">
-          <div className={`p-3 rounded-2xl ${actuator.bgLight} ${actuator.bgDark} shadow-sm backdrop-blur-md transition-transform duration-300 group-hover:scale-110 border border-white/50 dark:border-gray-700/30`}>
-            <Icon className={`w-6 h-6 ${actuator.iconColor} stroke-[2]`} />
+          <div className={`p-3 rounded-2xl ${visual.bgLight} ${visual.bgDark} shadow-sm backdrop-blur-md transition-transform duration-300 group-hover:scale-110 border border-white/50 dark:border-gray-700/30`}>
+            <Icon className={`w-6 h-6 ${visual.iconColor} stroke-[2]`} />
           </div>
           <div>
             <h3 className="text-[17px] font-semibold text-gray-700 dark:text-gray-200 leading-snug tracking-wide">{actuator.label}</h3>
@@ -139,8 +129,23 @@ function ActuatorCard({ actuator }) {
         </div>
       </div>
 
-      {/* Description */}
-      <p className="text-[13px] text-gray-500 dark:text-gray-400 leading-relaxed mb-4 relative z-10">{actuator.description}</p>
+      {/* Triggered by info */}
+      <div className="relative z-10 mb-4">
+        {actuator.triggered_by ? (
+          <p className="text-[13px] text-gray-500 dark:text-gray-400 leading-relaxed">
+            Dipicu oleh: <span className="font-medium text-gray-700 dark:text-gray-300">{SENSOR_NAMES[actuator.triggered_by] || actuator.triggered_by}</span>
+          </p>
+        ) : (
+          <p className="text-[13px] text-gray-500 dark:text-gray-400 leading-relaxed">
+            {isOn ? 'Diaktifkan manual' : 'Menunggu data sensor...'}
+          </p>
+        )}
+        {actuator.updated_at && (
+          <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1">
+            Update: {new Date(actuator.updated_at).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+          </p>
+        )}
+      </div>
 
       {/* Status indicator */}
       <div className="flex items-center justify-between relative z-10">
@@ -169,15 +174,32 @@ function ActuatorCard({ actuator }) {
   );
 }
 
-import { useAuth } from '../context/AuthContext';
+// Loading skeleton card
+function SkeletonCard() {
+  return (
+    <div className="bg-white/70 dark:bg-gray-800/60 backdrop-blur-md rounded-[24px] p-6 border border-white/40 dark:border-gray-700/50 min-h-[200px] animate-pulse">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-2xl"></div>
+        <div className="h-5 w-28 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+      </div>
+      <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded-lg mb-2"></div>
+      <div className="h-3 w-32 bg-gray-200 dark:bg-gray-700 rounded-lg mb-4"></div>
+      <div className="flex justify-between items-center">
+        <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+        <div className="h-7 w-14 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+      </div>
+    </div>
+  );
+}
 
 export default function Actuator() {
   const { isDark, toggleTheme } = useOutletContext();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { actuators, loading } = useActuatorStates();
 
-  const activeCount = ACTUATORS.filter(a => a.isOn).length;
-  const inactiveCount = ACTUATORS.filter(a => !a.isOn).length;
+  const activeCount = actuators.filter(a => a.is_on).length;
+  const inactiveCount = actuators.filter(a => !a.is_on).length;
 
   return (
     <div className="flex-1 flex flex-col h-screen overflow-y-auto px-6 md:px-10 lg:px-14 py-8 md:py-10 animate-page-enter relative z-0">
@@ -240,13 +262,13 @@ export default function Actuator() {
             {/* Total */}
             <div className="bg-white/70 dark:bg-gray-800/60 backdrop-blur-md rounded-[20px] p-5 border border-white/40 dark:border-gray-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
               <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">Total Aktuator</p>
-              <p className="text-4xl font-bold text-gray-800 dark:text-white tracking-tight">{ACTUATORS.length}</p>
+              <p className="text-4xl font-bold text-gray-800 dark:text-white tracking-tight">{loading ? '—' : actuators.length}</p>
             </div>
             {/* Active */}
             <div className="bg-white/70 dark:bg-gray-800/60 backdrop-blur-md rounded-[20px] p-5 border border-white/40 dark:border-gray-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
               <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">Aktif</p>
               <div className="flex items-baseline gap-2">
-                <p className="text-4xl font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">{activeCount}</p>
+                <p className="text-4xl font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">{loading ? '—' : activeCount}</p>
                 <div className="flex items-center gap-1">
                   <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
                   <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Online</span>
@@ -257,7 +279,7 @@ export default function Actuator() {
             <div className="bg-white/70 dark:bg-gray-800/60 backdrop-blur-md rounded-[20px] p-5 border border-white/40 dark:border-gray-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
               <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">Tidak Aktif</p>
               <div className="flex items-baseline gap-2">
-                <p className="text-4xl font-bold text-gray-400 dark:text-gray-500 tracking-tight">{inactiveCount}</p>
+                <p className="text-4xl font-bold text-gray-400 dark:text-gray-500 tracking-tight">{loading ? '—' : inactiveCount}</p>
                 <div className="flex items-center gap-1">
                   <div className="w-2 h-2 rounded-full bg-gray-400"></div>
                   <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">Offline</span>
@@ -272,12 +294,19 @@ export default function Actuator() {
           <div className="flex items-center gap-3 mb-6">
             <div className="w-1.5 h-6 bg-[#1E463A] dark:bg-green-500 rounded-full"></div>
             <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 tracking-wide">Status Aktuator</h2>
+            {loading && (
+              <Loader2 className="w-4 h-4 text-gray-400 animate-spin ml-2" />
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-            {ACTUATORS.map(actuator => (
-              <ActuatorCard key={actuator.id} actuator={actuator} />
-            ))}
+            {loading ? (
+              Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
+            ) : (
+              actuators.map(actuator => (
+                <ActuatorCard key={actuator.id} actuator={actuator} />
+              ))
+            )}
           </div>
         </section>
       </div>
