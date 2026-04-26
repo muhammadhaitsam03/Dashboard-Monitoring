@@ -64,6 +64,7 @@ const TEAM = [
     role: 'Mahasiswa',
     initials: 'M7',
     gradient: 'from-indigo-400 to-violet-500',
+    image: '/team/Muhammad Haitsam Hafidhulhaq.jpg',
     social: { github: '#', linkedin: '#' }
   },
   // Row 3 (3 people)
@@ -329,8 +330,12 @@ export default function About() {
                     >
                       {/* Avatar */}
                       <div className="relative mb-4">
-                        <div className={`w-[88px] h-[88px] md:w-[100px] md:h-[100px] rounded-full bg-gradient-to-br ${member.gradient} flex items-center justify-center shadow-lg border-[3px] border-white dark:border-gray-800 transition-transform duration-300 group-hover:scale-110`}>
-                          <span className="text-white font-bold text-lg md:text-xl tracking-wide">{member.initials}</span>
+                        <div className={`w-[88px] h-[88px] md:w-[100px] md:h-[100px] rounded-full bg-gradient-to-br ${member.gradient} flex items-center justify-center shadow-lg border-[3px] border-white dark:border-gray-800 transition-transform duration-300 group-hover:scale-110 overflow-hidden`}>
+                          {member.image ? (
+                            <img src={member.image} alt={member.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-white font-bold text-lg md:text-xl tracking-wide">{member.initials}</span>
+                          )}
                         </div>
                         {/* Online indicator */}
                         <div className="absolute bottom-1 right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white dark:border-gray-800"></div>
