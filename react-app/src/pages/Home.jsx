@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useState as useStateReact } from 'react';
+import { exportSensorToExcel } from '../utils/exportToExcel';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import {
   Sun,
@@ -134,6 +135,8 @@ const HistoryChart = ({ title, data, yDomain, isDark, unit = '', optimalRange })
   const theme = chartThemes[title] || chartThemes['Suhu Rumah Kaca'];
   const lineColor = isDark ? theme.dark : theme.light;
   const gradientId = `gradient-${title.replace(/\s/g, '-')}`;
+  const chartContainerRef = useRef(null);
+  const [isExporting, setIsExporting] = useStateReact(false);
 
   const yMin = yDomain[0];
   const yMax = yDomain[1];
@@ -151,20 +154,20 @@ const HistoryChart = ({ title, data, yDomain, isDark, unit = '', optimalRange })
       }
     : { min: '—', max: '—', avg: '—', hasData: false };
 
-  const handleDownloadCSV = () => {
-    const headers = ['Time', title];
-    const rows = data.map(point => [point.time, point.value !== null ? point.value.toFixed(2) : '']);
-    const csvContent = "data:text/csv;charset=utf-8,"
-      + headers.join(",") + "\n"
-      + rows.map(e => e.join(",")).join("\n");
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `${title.toLowerCase()}_data_24h.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownloadExcel = async () => {
+    setIsExporting(true);
+    try {
+      await exportSensorToExcel({
+        title,
+        data,
+        unit,
+        chartRef: chartContainerRef.current,
+      });
+    } catch (err) {
+      console.error('Excel export failed:', err);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -175,14 +178,15 @@ const HistoryChart = ({ title, data, yDomain, isDark, unit = '', optimalRange })
           <h3 className="text-[14px] font-semibold text-gray-700 dark:text-gray-200 tracking-wide">{title}</h3>
         </div>
         <button
-          onClick={handleDownloadCSV}
-          title={title}
-          className="w-7 h-7 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-300 transition-all duration-200 cursor-pointer"
+          onClick={handleDownloadExcel}
+          disabled={isExporting}
+          title={`Download ${title} (.xlsx)`}
+          className="w-7 h-7 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-300 transition-all duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-wait"
         >
-          <Download size={13} strokeWidth={2} />
+          {isExporting ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} strokeWidth={2} />}
         </button>
       </div>
-      <div className="w-full h-[170px]">
+      <div ref={chartContainerRef} className="w-full h-[170px]">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 5, right: 8, left: -20, bottom: 0 }}>
             <defs>
