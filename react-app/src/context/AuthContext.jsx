@@ -48,7 +48,19 @@ export const AuthProvider = ({ children }) => {
     user,
     refreshUser,
     updateUserState,
-    signOut: () => supabase.auth.signOut(),
+    signOut: async () => {
+      // Clear all tutorial completion flags
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('tutorial_completed_')) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+      localStorage.removeItem('dashboard_tutorial_completed'); // legacy key
+      await supabase.auth.signOut();
+    },
   };
 
   return (

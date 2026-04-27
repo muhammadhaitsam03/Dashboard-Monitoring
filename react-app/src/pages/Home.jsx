@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import NotificationDropdown from '../components/NotificationDropdown';
 import LiveClock from '../components/LiveClock';
+
 import { useSensorData } from '../hooks/useSensorData';
 import {
   AreaChart,
@@ -181,7 +182,7 @@ const HistoryChart = ({ title, data, yDomain, isDark, unit = '', optimalRange })
           onClick={handleDownloadExcel}
           disabled={isExporting}
           title={`Download ${title} (.xlsx)`}
-          className="w-7 h-7 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-300 transition-all duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-wait"
+          className="tour-export-btn w-7 h-7 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-300 transition-all duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-wait"
         >
           {isExporting ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} strokeWidth={2} />}
         </button>
@@ -358,6 +359,7 @@ export default function Home() {
 
   return (
     <div className="flex-1 flex flex-col h-screen overflow-y-auto px-6 md:px-10 lg:px-14 py-8 md:py-10 animate-page-enter relative z-0">
+
       {/* Decorative background blobs */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-200/30 dark:bg-emerald-900/15 rounded-full blur-[80px] -z-10 pointer-events-none"></div>
       <div className="absolute bottom-10 left-10 w-[600px] h-[600px] bg-blue-200/20 dark:bg-blue-900/15 rounded-full blur-[100px] -z-10 pointer-events-none"></div>
@@ -371,6 +373,7 @@ export default function Home() {
 
           {/* Theme Toggle */}
           <div
+            id="tour-theme-toggle"
             onClick={toggleTheme}
             className="bg-gray-200 dark:bg-gray-700 rounded-full w-14 h-8 flex items-center p-1 relative cursor-pointer shadow-inner hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
           >
@@ -408,7 +411,7 @@ export default function Home() {
       <div className="max-w-7xl mx-auto w-full">
         {/* Current Reading */}
         <section className="mb-12">
-          <div className="flex items-center gap-3 mb-6">
+          <div id="tour-live-monitoring" className="flex items-center gap-3 mb-6 w-fit">
             <div className="w-1.5 h-6 bg-[#1E463A] dark:bg-green-500 rounded-full"></div>
             <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 tracking-wide">Live Monitoring</h2>
             {loading && <Loader2 className="w-4 h-4 text-gray-400 animate-spin ml-1" />}
@@ -462,7 +465,7 @@ export default function Home() {
 
         {/* 24-Hour History */}
         <section className="pb-16">
-          <div className="flex items-center gap-3 mb-6">
+          <div id="tour-history-charts" className="flex items-center gap-3 mb-6 w-fit">
             <div className="w-1.5 h-6 bg-[#1E463A] dark:bg-green-500 rounded-full"></div>
             <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 tracking-wide">Data 24 Jam</h2>
           </div>

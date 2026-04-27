@@ -285,7 +285,7 @@ export default function Prediction() {
         </div>
 
         {/* AI Plant Assistant Banner */}
-        <div className="bg-white/70 dark:bg-gray-800/60 backdrop-blur-md rounded-2xl px-6 py-4 flex items-center gap-4 border border-gray-100 dark:border-gray-700/50 shadow-sm">
+        <div id="tour-brain-assistant" className="bg-white/70 dark:bg-gray-800/60 backdrop-blur-md rounded-2xl px-6 py-4 flex items-center gap-4 border border-gray-100 dark:border-gray-700/50 shadow-sm">
           <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 dark:from-emerald-500 dark:to-teal-600 rounded-full flex items-center justify-center shadow-md shrink-0">
             <Sparkles className="w-6 h-6 text-white" />
           </div>
@@ -408,7 +408,7 @@ export default function Prediction() {
         </div>
 
         {/* Weather forecast graphic */}
-        <div className="bg-white/70 dark:bg-gray-800/50 backdrop-blur-md border border-gray-100 dark:border-gray-700/50 rounded-2xl px-7 py-6 transition-all hover:shadow-md">
+        <div id="tour-brain-forecast" className="bg-white/70 dark:bg-gray-800/50 backdrop-blur-md border border-gray-100 dark:border-gray-700/50 rounded-2xl px-7 py-6 transition-all hover:shadow-md">
           <h3 className="text-[15px] font-bold text-gray-800 dark:text-gray-100 mb-2">
             Weather forecast (next 24 hours)
           </h3>

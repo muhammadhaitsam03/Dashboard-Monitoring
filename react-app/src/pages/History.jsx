@@ -338,7 +338,7 @@ const DetailedChartCard = ({ title, rawData, dbKey, yDomain, isDark, defaultTime
 
       <div className="bg-white dark:bg-[#1a1f2e] rounded-2xl p-5 pb-5 border border-gray-100/80 dark:border-gray-700/40 flex flex-col transition-all duration-300 hover:shadow-lg hover:shadow-black/[0.03] dark:hover:shadow-black/20 group">
 
-        <div className="flex justify-end items-center gap-2 mb-4 w-full flex-wrap">
+        <div id="tour-history-filters" className="flex justify-end items-center gap-2 mb-4 w-full flex-wrap">
           
           {timeMode === 'Perbulan' ? (
             <CustomSelect
@@ -583,7 +583,7 @@ export default function History() {
       </header>
 
       <div className="max-w-7xl mx-auto w-full pb-16">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-10">
+        <div id="tour-history-cards" className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-10">
           <DetailedChartCard
             title="Suhu Rumah Kaca"
             rawData={rawData}

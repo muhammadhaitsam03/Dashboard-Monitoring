@@ -252,7 +252,7 @@ export default function Actuator() {
 
       <div className="max-w-7xl mx-auto w-full">
         {/* Summary Stats */}
-        <section className="mb-10">
+        <section id="tour-actuator-summary" className="mb-10">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-1.5 h-6 bg-[#1E463A] dark:bg-green-500 rounded-full"></div>
             <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 tracking-wide">Ringkasan Status</h2>
@@ -291,7 +291,7 @@ export default function Actuator() {
 
         {/* Actuator Cards */}
         <section className="pb-16">
-          <div className="flex items-center gap-3 mb-6">
+          <div id="tour-actuator-cards" className="flex items-center gap-3 mb-6 w-fit">
             <div className="w-1.5 h-6 bg-[#1E463A] dark:bg-green-500 rounded-full"></div>
             <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 tracking-wide">Status Aktuator</h2>
             {loading && (

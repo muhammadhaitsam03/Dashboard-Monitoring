@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
+import DashboardTutorial from './DashboardTutorial';
 
 export default function DashboardLayout() {
   const [isDark, setIsDark] = useState(() => {
@@ -27,6 +28,7 @@ export default function DashboardLayout() {
       <main className="flex-1 overflow-hidden relative">
         <Outlet context={{ isDark, toggleTheme }} />
       </main>
+      <DashboardTutorial isDark={isDark} />
     </div>
   );
 }

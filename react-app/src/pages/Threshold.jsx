@@ -264,7 +264,7 @@ export default function Threshold() {
           <h1 className="text-3xl md:text-4xl font-semibold text-gray-800 dark:text-white tracking-tight">Threshold Sensor</h1>
 
           {/* Manual / Auto ML Toggle */}
-          <div className="flex items-center gap-0 bg-gray-100 dark:bg-gray-800 rounded-full p-1 border border-gray-200/60 dark:border-gray-700/60 shadow-inner ml-3">
+          <div id="tour-threshold-automl" className="flex items-center gap-0 bg-gray-100 dark:bg-gray-800 rounded-full p-1 border border-gray-200/60 dark:border-gray-700/60 shadow-inner ml-3">
             <button
               onClick={() => { setIsAutoMode(false); localStorage.setItem('threshold_auto_mode', 'false'); }}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[12px] font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
@@ -346,7 +346,7 @@ export default function Threshold() {
       <div className="flex-1 flex gap-8 pb-10">
 
         {/* Left Column: Sensor List */}
-        <div className="w-[220px] shrink-0 flex flex-col gap-2.5">
+        <div id="tour-threshold-sensors" className="w-[220px] shrink-0 flex flex-col gap-2.5">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-1.5 h-5 bg-[#1E463A] dark:bg-green-500 rounded-full"></div>
             <h2 className="text-[13px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Pilih Sensor</h2>
@@ -427,7 +427,7 @@ export default function Threshold() {
           </div>
 
           {/* Threshold Controls */}
-          <div className={`flex items-center gap-8 mt-10 transition-all duration-300 ${isAutoMode ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}>
+          <div id="tour-threshold-controls" className={`flex items-center gap-8 mt-10 transition-all duration-300 ${isAutoMode ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}>
 
             {/* Min Control */}
             <div className="flex flex-col items-center gap-2">
