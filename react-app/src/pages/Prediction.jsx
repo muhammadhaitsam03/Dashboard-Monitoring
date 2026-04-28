@@ -290,8 +290,8 @@ export default function Prediction() {
             <Sparkles className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h3 className="text-[16px] font-bold text-gray-800 dark:text-gray-100 leading-snug">AI Plant Assistant</h3>
-            <p className="text-[13px] text-gray-500 dark:text-gray-400 mt-0.5">Real-time analysis and recommendations</p>
+            <h3 className="text-[16px] font-bold text-gray-800 dark:text-gray-100 leading-snug">Asisten Rekomendasi dan Prediksi AI</h3>
+            <p className="text-[13px] text-gray-500 dark:text-gray-400 mt-0.5">Analisa dan rekomendasi secara real-time</p>
           </div>
         </div>
 
@@ -299,7 +299,7 @@ export default function Prediction() {
         <div className="flex items-center gap-2 text-[13px] text-gray-400 dark:text-gray-500">
           <Clock className="w-3.5 h-3.5" />
           <span>
-            Last updated: {latestSensor?.created_at ? new Date(latestSensor.created_at).toLocaleString() : '—'} · page refreshes every 60s
+            Update Terakhir: {latestSensor?.created_at ? new Date(latestSensor.created_at).toLocaleString() : '—'} · Data diperbaharui setiap 60 detik
           </span>
         </div>
 
@@ -370,23 +370,23 @@ export default function Prediction() {
         {/* Predicted for this hour */}
         <div className="bg-cyan-50/70 dark:bg-cyan-950/30 border border-cyan-200/60 dark:border-cyan-800/40 rounded-2xl px-7 py-5 transition-all hover:shadow-md">
           <h3 className="text-[15px] font-bold text-gray-800 dark:text-gray-100 mb-2">
-            Predicted for this hour
+            Prediksi untuk jam ini
             <span className="font-normal text-gray-500 dark:text-gray-400 ml-2 text-[13px]">
-              ({forecast?.current_hour?.time ? new Date(forecast.current_hour.time).toLocaleString() : '—'}, from prediction_forecast.csv)
+              ({forecast?.current_hour?.time ? new Date(forecast.current_hour.time).toLocaleString() : '—'}, dari data: prediction_forecast.csv)
             </span>
           </h3>
           <p className="text-[14px] text-gray-700 dark:text-gray-300 leading-relaxed">
             {forecastLoading ? (
-              'Loading forecast…'
+              'Memuat prediksi…'
             ) : forecast?.current_hour ? (
               <>
-                Temperature {safeNum(forecast.current_hour.suhu)?.toFixed?.(1) ?? '—'}°C, {forecast.current_hour.cuaca_label},
-                humidity {safeNum(forecast.current_hour.humidity)?.toFixed?.(2) ?? '—'} (0–1),
-                light {safeNum(forecast.current_hour.light_intensity)?.toFixed?.(0) ?? '—'},
+                Suhu rumah kaca {safeNum(forecast.current_hour.suhu)?.toFixed?.(1) ?? '—'}°C, {forecast.current_hour.cuaca_label},
+                Kelembapan {safeNum(forecast.current_hour.humidity)?.toFixed?.(2) ?? '—'} (0–1),
+                Intensitas cahaya {safeNum(forecast.current_hour.light_intensity)?.toFixed?.(0) ?? '—'},
                 pH {safeNum(forecast.current_hour.ph)?.toFixed?.(2) ?? '—'}.
               </>
             ) : (
-              'Forecast unavailable.'
+              'Prediksi tidak tersedia.'
             )}
           </p>
         </div>
@@ -394,7 +394,7 @@ export default function Prediction() {
         {/* Current conditions (realtime) */}
         <div className="bg-emerald-50/70 dark:bg-emerald-950/25 border border-emerald-200/60 dark:border-emerald-800/40 rounded-2xl px-7 py-5 transition-all hover:shadow-md">
           <h3 className="text-[15px] font-bold text-gray-800 dark:text-gray-100 mb-2">
-            Current conditions (realtime)
+            Kondisi saat ini
           </h3>
           <p className="text-[14px] text-gray-700 dark:text-gray-300 leading-relaxed">
             {latestSensor ? (
@@ -402,7 +402,7 @@ export default function Prediction() {
                 Suhu {currentCards.suhu ?? '—'}°C. Kelembapan {currentCards.kelembapan ?? '—'}%. Intensitas cahaya {currentCards.intensitas ?? '—'} lux. pH {currentCards.ph ?? '—'}.
               </>
             ) : (
-              'Waiting for realtime sensor readings…'
+              'Menunggu data pembacaan sensor…'
             )}
           </p>
         </div>
@@ -410,7 +410,7 @@ export default function Prediction() {
         {/* Weather forecast graphic */}
         <div id="tour-brain-forecast" className="bg-white/70 dark:bg-gray-800/50 backdrop-blur-md border border-gray-100 dark:border-gray-700/50 rounded-2xl px-7 py-6 transition-all hover:shadow-md">
           <h3 className="text-[15px] font-bold text-gray-800 dark:text-gray-100 mb-2">
-            Weather forecast (next 24 hours)
+            Prediksi cuaca (24 jam kedepan)
           </h3>
           <div className="mt-4 h-[240px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -446,15 +446,15 @@ export default function Prediction() {
         {/* Recommendation */}
         <div className="bg-white/70 dark:bg-gray-800/50 backdrop-blur-md border border-gray-100 dark:border-gray-700/50 rounded-2xl px-7 py-6 transition-all hover:shadow-md">
           <h3 className="text-[16px] font-bold text-gray-800 dark:text-gray-100 mb-3">
-            Recommendation
+            Rekomendasi
           </h3>
           <p className="text-[14px] text-gray-700 dark:text-gray-300 leading-[1.8]">
             {recoLoading ? (
-              'Generating recommendation…'
+              'Membuat rekomendasi…'
             ) : recommendation?.text ? (
               recommendation.text
             ) : (
-              'Recommendation unavailable.'
+              'Rekomendasi tidak tersedia.'
             )}
           </p>
         </div>
@@ -463,7 +463,7 @@ export default function Prediction() {
         <div className="bg-white/60 dark:bg-gray-900/20 border border-gray-100 dark:border-gray-700/40 rounded-2xl px-7 py-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-1.5 h-6 bg-[#1E463A] dark:bg-green-500 rounded-full"></div>
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 tracking-wide">Data 24 Jam (realtime)</h2>
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 tracking-wide">Data 24 Jam (real-time)</h2>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             <div className="bg-white dark:bg-[#1a1f2e] rounded-2xl p-5 border border-gray-100/80 dark:border-gray-700/40">
