@@ -49,16 +49,22 @@ export const AuthProvider = ({ children }) => {
     refreshUser,
     updateUserState,
     signOut: async () => {
-      // Clear all tutorial completion flags
+      // Clear tutorial session flags so the tour shows again on next login
+      sessionStorage.removeItem('tutorial_done');
+      sessionStorage.removeItem('tutorial_active');
+      sessionStorage.removeItem('tutorial_next_page');
+
+      // Clear any legacy localStorage tutorial keys from older versions
       const keysToRemove = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && key.startsWith('tutorial_completed_')) {
+        if (key && (key.startsWith('tutorial_completed_') || key.startsWith('tutorial_done_'))) {
           keysToRemove.push(key);
         }
       }
       keysToRemove.forEach(k => localStorage.removeItem(k));
-      localStorage.removeItem('dashboard_tutorial_completed'); // legacy key
+      localStorage.removeItem('dashboard_tutorial_completed');
+
       await supabase.auth.signOut();
     },
   };
