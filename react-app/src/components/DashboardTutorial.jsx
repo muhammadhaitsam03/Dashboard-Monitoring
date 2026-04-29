@@ -16,7 +16,7 @@ const TOUR_STEPS = {
     {
       target: 'body',
       title: 'Selamat Datang di Dashboard! 👋',
-      content: 'Mari kita lihat sekilas fitur utama dashboard ini agar Anda bisa langsung memonitor lahan dengan maksimal.',
+      content: 'Mari kita lihat sekilas fitur utama dashboard ini agar Anda bisa langsung memonitor greenhouse dengan maksimal.',
       placement: 'center',
       disableBeacon: true,
     },
@@ -29,7 +29,7 @@ const TOUR_STEPS = {
     },
     {
       target: 'body',
-      title: 'Analisis Tren 24 Jam',
+      title: 'Grafik pembacaan sensor 24 Jam',
       content: 'Grafik di bawah memvisualisasikan data sensor selama 24 jam terakhir. Garis hijau putus-putus menandakan rentang nilai optimal.',
       placement: 'center',
       disableBeacon: true,
@@ -61,15 +61,15 @@ const TOUR_STEPS = {
   '/brain': [
     {
       target: 'body',
-      title: 'AI & Prediksi 🤖',
+      title: 'Prediksi & Rekomendasi',
       content: 'Halaman ini adalah pusat kecerdasan sistem. AI memproses data historis dan cuaca untuk memberikan analisis prediktif.',
       placement: 'center',
       disableBeacon: true,
     },
     {
       target: '#tour-brain-assistant',
-      title: 'AI Plant Assistant',
-      content: 'Chat dengan AI untuk mendapatkan rekomendasi tindakan berdasarkan kondisi sensor terkini dan cuaca.',
+      title: 'Cara kerja',
+      content: 'Model PatchTST menganalisis histori data yang sudah ada untuk memprediksikan dan memberikan rekomendasi.',
       placement: 'bottom',
       disableBeacon: true,
     },
@@ -84,8 +84,8 @@ const TOUR_STEPS = {
   '/threshold': [
     {
       target: 'body',
-      title: 'Halaman Threshold ⚙️',
-      content: 'Di sini Anda bisa mengatur batas nilai optimal untuk setiap sensor. Sistem akan memberikan notifikasi jika data melewati batas ini.',
+      title: 'Halaman Threshold sensor',
+      content: 'Di sini Anda bisa mengatur batas nilai optimal untuk setiap sensor baik secara manual maupun otomatis. Sistem akan memberikan notifikasi jika data melewati batas ini.',
       placement: 'center',
       disableBeacon: true,
     },
@@ -114,7 +114,7 @@ const TOUR_STEPS = {
   '/actuator': [
     {
       target: 'body',
-      title: 'Halaman Aktuator 🔌',
+      title: 'Halaman Aktuator',
       content: 'Pantau status semua perangkat aktuator yang terhubung ke sistem secara real-time.',
       placement: 'center',
       disableBeacon: true,
@@ -201,43 +201,53 @@ const CustomTooltip = ({
     <div
       {...tooltipProps}
       style={{ fontFamily: 'inherit' }}
-      className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/50 dark:border-gray-700/50 shadow-[0_8px_32px_rgba(0,0,0,0.18)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)] rounded-2xl p-5 max-w-[320px] mx-2 relative overflow-hidden"
+      className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-[0_12px_40px_rgba(0,0,0,0.22)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.6)] rounded-2xl max-w-[340px] mx-2 overflow-hidden"
     >
-      <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 dark:bg-emerald-400/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
+      {/* Top accent bar */}
+      <div className="h-1 w-full bg-gradient-to-r from-[#1E463A] via-emerald-500 to-teal-400" />
 
-      <div className="relative z-10">
-        <h3 className="text-[17px] font-bold text-gray-800 dark:text-gray-100 mb-2 leading-snug">
+      <div className="px-6 pt-5 pb-5">
+        {/* Step counter label */}
+        <span className="inline-block text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-400 mb-3">
+          Langkah {index + 1} dari {size}
+        </span>
+
+        {/* Title */}
+        <h3 className="text-[16px] font-bold text-gray-900 dark:text-white mb-2 leading-snug">
           {step.title}
         </h3>
-        <p className="text-[13.5px] text-gray-600 dark:text-gray-300 leading-relaxed mb-6">
+
+        {/* Body text */}
+        <p className="text-[13px] text-gray-500 dark:text-gray-400 leading-[1.75] mb-6">
           {step.content}
         </p>
 
-        <div className="flex items-center justify-between mt-2">
+        {/* Footer: progress dots + buttons */}
+        <div className="flex items-center justify-between">
           {/* Progress dots */}
           <div className="flex items-center gap-1.5">
             {Array.from({ length: size }).map((_, i) => (
               <div
                 key={i}
-                className={`h-1.5 rounded-full transition-all duration-300 ${i === index ? 'w-4 bg-emerald-500' : 'w-1.5 bg-gray-200 dark:bg-gray-700'
+                className={`h-1.5 rounded-full transition-all duration-300 ${i === index ? 'w-5 bg-emerald-500' : 'w-1.5 bg-gray-200 dark:bg-gray-700'
                   }`}
               />
             ))}
           </div>
 
+          {/* Buttons */}
           <div className="flex items-center gap-3">
-            {/* "Lewati" only on the very first step of the whole tour */}
             {index === 0 && (
               <button
                 onClick={handleSkip}
-                className="text-[12px] font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors uppercase tracking-wider"
+                className="text-[11px] font-semibold text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors uppercase tracking-widest"
               >
                 Lewati
               </button>
             )}
             <button
               onClick={handlePrimary}
-              className="bg-[#1E463A] hover:bg-[#2a5d4d] dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-[12px] font-bold uppercase tracking-wider px-5 py-2.5 rounded-xl shadow-md transition-all active:scale-95"
+              className="bg-[#1E463A] hover:bg-[#2a5d4d] dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-[11px] font-bold uppercase tracking-widest px-5 py-2.5 rounded-xl shadow-sm transition-all active:scale-95"
             >
               {step.isGlobalLast
                 ? 'Selesai 🎉'
