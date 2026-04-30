@@ -69,7 +69,7 @@ function captureChartAsImage(containerEl) {
  * @param {string} opts.unit  - Unit string (e.g., "°C")
  * @param {HTMLElement} opts.chartRef - DOM ref to chart container for image capture
  */
-export async function exportSensorToExcel({ title, data, unit, chartRef }) {
+export async function exportSensorToExcel({ title, data, unit, chartRef, rangeLabel }) {
   const workbook = new ExcelJS.Workbook();
   workbook.creator = 'Dashboard Monitoring';
   workbook.created = new Date();
@@ -98,17 +98,25 @@ export async function exportSensorToExcel({ title, data, unit, chartRef }) {
   titleCell.alignment = { vertical: 'middle' };
   sheet.getRow(1).height = 30;
 
-  // ── Export info ──
+  // ── Export info (Row 2) ──
   sheet.mergeCells('A2:C2');
   const infoCell = sheet.getCell('A2');
   infoCell.value = `Diekspor pada: ${now.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })} ${now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`;
   infoCell.font = { name: 'Calibri', size: 10, italic: true, color: { argb: '888888' } };
-  sheet.getRow(2).height = 20;
+  sheet.getRow(2).height = 18;
 
-  // Row 3 is blank
-
-  // ── Data Header Row (Row 4) ──
-  const headerRowNum = 4;
+  // ── Range label (Row 3) — shown only when rangeLabel is provided ──
+  let headerRowNum = 4; // default: no range row
+  if (rangeLabel) {
+    sheet.mergeCells('A3:F3');
+    const rangeCell = sheet.getCell('A3');
+    rangeCell.value = `Rentang Data: ${rangeLabel}`;
+    rangeCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFF' } };
+    rangeCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '385344' } };
+    rangeCell.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+    sheet.getRow(3).height = 22;
+    headerRowNum = 5; // push header + data down by 1
+  }
   const headerRow = sheet.getRow(headerRowNum);
   headerRow.getCell(1).value = 'No';
   headerRow.getCell(2).value = 'Waktu';
@@ -122,7 +130,7 @@ export async function exportSensorToExcel({ title, data, unit, chartRef }) {
   });
   headerRow.height = 24;
 
-  // ── Data Rows (starting Row 5) ──
+  // ── Data Rows (starting from headerRowNum + 1) ──
   const today = new Date();
   const dateStr = today.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
   let no = 1;
@@ -132,7 +140,10 @@ export async function exportSensorToExcel({ title, data, unit, chartRef }) {
     if (point.value !== null) {
       const dataRowNum = headerRowNum + no;
       const row = sheet.getRow(dataRowNum);
-      const timeStr = `${dateStr} ${String(point.time).padStart(2, '0')}:00`;
+      // Use label from data point if available (e.g. "Senin", "01.00"), else fall back to time index
+      const timeStr = point.label
+        ? point.label
+        : `${dateStr} ${String(point.time).padStart(2, '0')}:00`;
 
       row.getCell(1).value = no;
       row.getCell(2).value = timeStr;
@@ -162,8 +173,8 @@ export async function exportSensorToExcel({ title, data, unit, chartRef }) {
   //  RIGHT SIDE: Stats + Chart (columns E-F, starting row 4)
   // ════════════════════════════════════════════════════
 
-  // ── Stats Header (Row 4, same as data header) ──
-  const statsHeaderRow = sheet.getRow(4);
+  // ── Stats Header (same row as data header, columns E–F) ──
+  const statsHeaderRow = sheet.getRow(headerRowNum);
   statsHeaderRow.getCell(5).value = 'Statistik';
   statsHeaderRow.getCell(6).value = 'Nilai';
   [5, 6].forEach(col => {
@@ -186,7 +197,7 @@ export async function exportSensorToExcel({ title, data, unit, chartRef }) {
     ];
 
     statsData.forEach((stat, idx) => {
-      const row = sheet.getRow(5 + idx);
+      const row = sheet.getRow(headerRowNum + 1 + idx);
       row.getCell(5).value = stat.label;
       row.getCell(6).value = stat.value;
       row.getCell(5).font = { name: 'Calibri', size: 11, bold: true, color: { argb: stat.color } };
@@ -197,18 +208,19 @@ export async function exportSensorToExcel({ title, data, unit, chartRef }) {
       row.getCell(6).border = { bottom: { style: 'hair', color: { argb: 'E0E0E0' } } };
     });
   } else {
-    const noDataRow = sheet.getRow(5);
+    const noDataRow = sheet.getRow(headerRowNum + 1);
     noDataRow.getCell(5).value = 'Belum ada data';
     noDataRow.getCell(5).font = { name: 'Calibri', size: 11, italic: true, color: { argb: '999999' } };
     noDataRow.getCell(5).alignment = { horizontal: 'center' };
   }
 
-  // ── Chart Label (Row 10) ──
-  const chartLabelRow = sheet.getRow(10);
-  chartLabelRow.getCell(5).value = 'Grafik 24 Jam';
+  // ── Chart Label & Image (6 rows after header) ──
+  const chartLabelRowNum = headerRowNum + 6;
+  const chartLabelRow = sheet.getRow(chartLabelRowNum);
+  chartLabelRow.getCell(5).value = 'Grafik Data';
   chartLabelRow.getCell(5).font = { name: 'Calibri', size: 12, bold: true, color: { argb: '1E463A' } };
 
-  // ── Embed Chart Image (Row 11, columns E-F) ──
+  // ── Embed Chart Image (below chart label) ──
   if (chartRef) {
     try {
       const imageBuffer = await captureChartAsImage(chartRef);
@@ -219,7 +231,7 @@ export async function exportSensorToExcel({ title, data, unit, chartRef }) {
         });
 
         sheet.addImage(imageId, {
-          tl: { col: 4, row: 10.5 },
+          tl: { col: 4, row: chartLabelRowNum + 0.5 },
           ext: { width: 500, height: 200 },
         });
       }
@@ -229,7 +241,7 @@ export async function exportSensorToExcel({ title, data, unit, chartRef }) {
   }
 
   // ── Freeze panes: freeze the header row ──
-  sheet.views = [{ state: 'frozen', ySplit: 4 }];
+  sheet.views = [{ state: 'frozen', ySplit: headerRowNum }];
 
   // ── Generate & Download ──
   const buffer = await workbook.xlsx.writeBuffer();

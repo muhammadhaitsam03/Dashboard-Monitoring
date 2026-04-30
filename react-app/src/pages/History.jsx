@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
+import { exportSensorToExcel } from '../utils/exportToExcel';
 import {
   Sun,
   Moon,
   Download,
-  CalendarDays
+  CalendarDays,
+  Loader2
 } from 'lucide-react';
 import NotificationDropdown from '../components/NotificationDropdown';
 import LiveClock from '../components/LiveClock';
@@ -241,6 +243,8 @@ const DetailedChartCard = ({ title, rawData, dbKey, yDomain, isDark, defaultTime
     return new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
   });
   const [selectedYear, setSelectedYear] = useState(String(new Date().getFullYear()));
+  const [isExporting, setIsExporting] = useState(false);
+  const chartContainerRef = useRef(null);
 
   const theme = chartThemes[title] || chartThemes['Suhu Rumah Kaca'];
   const lineColor = isDark ? theme.dark : theme.light;
@@ -313,20 +317,46 @@ const DetailedChartCard = ({ title, rawData, dbKey, yDomain, isDark, defaultTime
     return point ? point.label : '';
   };
 
-  const handleDownloadCSV = () => {
-    const headers = ['Time', title];
-    const rows = filteredData.map(point => [point.label, point.value !== null ? point.value.toFixed(2) : '']);
-    const csvContent = "data:text/csv;charset=utf-8,"
-      + headers.join(",") + "\n"
-      + rows.map(e => e.join(",")).join("\n");
+  // Build a human-readable range label for the Excel info row
+  const rangeLabel = (() => {
+    if (timeMode === 'Perjam') {
+      return `${formatDateToDDMMYYYY(selectedDate)}, ${rangeStart} – ${rangeEnd}`;
+    }
+    if (timeMode === 'Perhari') {
+      const spanDays = parseInt(spanLimit.split(' ')[0], 10) || 6;
+      const startD = new Date(`${selectedDate}T00:00:00`);
+      const endD = new Date(startD);
+      endD.setDate(startD.getDate() + spanDays - 1);
+      return `${formatDateToDDMMYYYY(startD)} – ${formatDateToDDMMYYYY(endD)}`;
+    }
+    if (timeMode === 'Perminggu') {
+      const spanWeeks = parseInt(spanLimit.split(' ')[0], 10) || 4;
+      const startD = new Date(`${selectedDate}T00:00:00`);
+      const endD = new Date(startD);
+      endD.setDate(startD.getDate() + spanWeeks * 7 - 1);
+      return `${formatDateToDDMMYYYY(startD)} – ${formatDateToDDMMYYYY(endD)}`;
+    }
+    if (timeMode === 'Perbulan') {
+      return `${rangeStart} ${selectedYear} – ${rangeEnd} ${selectedYear}`;
+    }
+    return '';
+  })();
 
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `${title.toLowerCase()}_data.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownloadExcel = async () => {
+    setIsExporting(true);
+    try {
+      await exportSensorToExcel({
+        title,
+        data: filteredData,
+        unit,
+        chartRef: chartContainerRef.current,
+        rangeLabel,
+      });
+    } catch (err) {
+      console.error('Excel export failed:', err);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -395,15 +425,16 @@ const DetailedChartCard = ({ title, rawData, dbKey, yDomain, isDark, defaultTime
           )}
 
           <button
-            onClick={handleDownloadCSV}
-            title="Unduh CSV"
-            className="w-7 h-7 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-300 transition-all duration-200 cursor-pointer border border-gray-200/80 dark:border-gray-700/60 shrink-0"
+            onClick={handleDownloadExcel}
+            disabled={isExporting}
+            title={`Unduh ${title} (.xlsx)`}
+            className="w-7 h-7 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-300 transition-all duration-200 cursor-pointer border border-gray-200/80 dark:border-gray-700/60 shrink-0 disabled:opacity-40 disabled:cursor-wait"
           >
-            <Download size={13} strokeWidth={2} />
+            {isExporting ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} strokeWidth={2} />}
           </button>
         </div>
 
-        <div className="w-full h-[190px]">
+        <div ref={chartContainerRef} className="w-full h-[190px]">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={filteredData} margin={{ top: 5, right: 8, left: -20, bottom: 0 }}>
               <defs>
