@@ -260,9 +260,14 @@ const HistoryChart = ({ title, data, yDomain, isDark, unit = '', optimalRange })
               stroke={lineColor}
               strokeWidth={2.5}
               fill={`url(#${gradientId})`}
-              dot={false}
+              dot={{
+                r: 3,
+                fill: isDark ? '#1a1f2e' : '#ffffff',
+                stroke: lineColor,
+                strokeWidth: 2
+              }}
               activeDot={{
-                r: 4,
+                r: 5,
                 fill: lineColor,
                 stroke: isDark ? '#1a1f2e' : '#ffffff',
                 strokeWidth: 2.5

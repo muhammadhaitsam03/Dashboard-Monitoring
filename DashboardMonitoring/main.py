@@ -392,6 +392,60 @@ async def receive_sensor_data(request: Request):
 
 # ─── Actuator State Endpoints ───
 
+@app.post("/api/actuator-data")
+async def receive_actuator_data(request: Request):
+    """
+    Endpoint for the ESP32/microcontroller to report actual relay states.
+    The MCU sends 1 (relay ON) or 0 (relay OFF) for each actuator.
+
+    Example payload from ESP32:
+    {
+        "exhaust_fan": 1,
+        "pompa_misting": 0,
+        "led_grow_light": 1,
+        "pompa_sirkulasi": 1,
+        "pompa_ph_up": 0,
+        "pompa_ph_down": 0,
+        "pompa_air_bersih": 0,
+        "pompa_nutrisi_a": 1,
+        "pompa_nutrisi_b": 1,
+        "kipas_pendingin": 0
+    }
+    """
+    if not supabase:
+        return {"error": "Supabase client not initialized"}
+
+    try:
+        payload = await request.json()
+        updated = []
+        errors = []
+
+        for actuator_id, raw_value in payload.items():
+            try:
+                is_on = bool(int(raw_value))  # 1 → True, 0 → False
+            except (ValueError, TypeError):
+                errors.append(f"Invalid value for '{actuator_id}': {raw_value}")
+                continue
+
+            update_data = {
+                "is_on": is_on,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+            supabase.table("actuator_states").update(update_data).eq("id", actuator_id).execute()
+            updated.append(actuator_id)
+
+        return {
+            "success": True,
+            "updated": updated,
+            "errors": errors,
+            "message": f"{len(updated)} actuator(s) updated from ESP32 report."
+        }
+
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+
 @app.get("/api/actuator-states")
 def get_actuator_states():
     """

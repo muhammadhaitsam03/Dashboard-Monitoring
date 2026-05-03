@@ -12,6 +12,158 @@ import { useAuth } from '../context/AuthContext';
 
 // Visual config for each actuator (icons, colors, etc.)
 const ACTUATOR_VISUALS = {
+  // 1. Exhaust Fan — ventilasi paksa menurunkan suhu greenhouse
+  exhaust_fan: {
+    colorOn: 'from-slate-400 to-gray-600',
+    iconColor: 'text-slate-500',
+    bgLight: 'bg-slate-50',
+    bgDark: 'dark:bg-slate-500/10',
+    icon: (props) => (
+      <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 12c-1.5-3-1-7 2-9 0 3 1.5 5 4 6s4 4 3 7c-1-1-3-1.5-5-1" />
+        <path d="M12 12c1.5 3 1 7-2 9 0-3-1.5-5-4-6s-4-4-3-7c1 1 3 1.5 5 1" />
+        <path d="M12 12c3 1.5 7 1 9-2-3 0-5-1.5-6-4s-4-4-7-3c1 1 1.5 3 1 5" />
+        <path d="M12 12c-3-1.5-7-1-9 2 3 0 5 1.5 6 4s4 4 7 3c-1-1-1.5-3-1-5" />
+        <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
+        <rect x="2" y="2" width="20" height="20" rx="3" strokeDasharray="2 2" strokeWidth="1" />
+      </svg>
+    )
+  },
+  // 2. Pompa Misting — pendinginan evaporatif dengan kabut air
+  pompa_misting: {
+    colorOn: 'from-sky-400 to-blue-500',
+    iconColor: 'text-sky-500',
+    bgLight: 'bg-sky-50',
+    bgDark: 'dark:bg-sky-500/10',
+    icon: (props) => (
+      <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 14.899A7 7 0 1115.71 8h1.79a4.5 4.5 0 012.5 8.242" />
+        <path d="M8 19v1M8 22v1M12 19v1M12 22v1M16 19v1M16 22v1" />
+      </svg>
+    )
+  },
+  // 3. LED Grow Light — menambah intensitas cahaya saat lux di bawah setpoint
+  led_grow_light: {
+    colorOn: 'from-yellow-400 to-amber-500',
+    iconColor: 'text-yellow-500',
+    bgLight: 'bg-yellow-50',
+    bgDark: 'dark:bg-yellow-500/10',
+    icon: (props) => (
+      <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9 18h6M10 22h4" />
+        <path d="M12 2a7 7 0 00-4 12.7V17h8v-2.3A7 7 0 0012 2z" />
+        <line x1="12" y1="6" x2="12" y2="10" />
+        <line x1="10" y1="8" x2="14" y2="8" />
+      </svg>
+    )
+  },
+  // 4. Pompa Sirkulasi — mengalirkan larutan nutrisi DFT ke reservoir
+  pompa_sirkulasi: {
+    colorOn: 'from-teal-400 to-emerald-500',
+    iconColor: 'text-teal-500',
+    bgLight: 'bg-teal-50',
+    bgDark: 'dark:bg-teal-500/10',
+    icon: (props) => (
+      <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 22V18M12 18C8 18 5 15 5 12V8h14v4c0 3-3 6-7 6Z" />
+        <path d="M5 8V6a2 2 0 012-2h10a2 2 0 012 2v2" />
+        <path d="M9 12h6M12 12v3" />
+        <circle cx="12" cy="3" r="1" fill="currentColor" />
+      </svg>
+    )
+  },
+  // 5. Pompa pH Up — menaikkan pH larutan
+  pompa_ph_up: {
+    colorOn: 'from-violet-400 to-purple-600',
+    iconColor: 'text-violet-500',
+    bgLight: 'bg-violet-50',
+    bgDark: 'dark:bg-violet-500/10',
+    icon: (props) => (
+      <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M8 20V8l4-4 4 4v12" />
+        <rect x="8" y="14" width="8" height="6" rx="1" />
+        <path d="M12 4v3M10 6h4" />
+        <path d="M6 20h12" />
+        <path d="M16 11h2M18 9v4" />
+      </svg>
+    )
+  },
+  // 6. Pompa pH Down — menurunkan pH larutan
+  pompa_ph_down: {
+    colorOn: 'from-orange-400 to-red-500',
+    iconColor: 'text-orange-500',
+    bgLight: 'bg-orange-50',
+    bgDark: 'dark:bg-orange-500/10',
+    icon: (props) => (
+      <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M8 20V8l4-4 4 4v12" />
+        <rect x="8" y="14" width="8" height="6" rx="1" />
+        <path d="M12 4v3" />
+        <path d="M6 20h12" />
+        <path d="M16 11h2" />
+      </svg>
+    )
+  },
+  // 7. Pompa Air Bersih — menambahkan air bersih ke tandon
+  pompa_air_bersih: {
+    colorOn: 'from-blue-400 to-cyan-500',
+    iconColor: 'text-blue-500',
+    bgLight: 'bg-blue-50',
+    bgDark: 'dark:bg-blue-500/10',
+    icon: (props) => (
+      <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.09 3 12.25c0 2.22 1.8 4.05 4 4.05z" />
+        <path d="M12.56 14.06c1.32 0 2.39-1.1 2.39-2.43 0-.7-.34-1.36-1.02-1.91-.68-.56-1.17-1.2-1.37-2.02-.2.82-.69 1.46-1.37 2.02-.68.55-1.02 1.21-1.02 1.91 0 1.33 1.07 2.43 2.39 2.43z" />
+        <path d="M17 18.8c1.76 0 3.2-1.46 3.2-3.24 0-.92-.46-1.8-1.37-2.55-.91-.75-1.5-1.6-1.83-2.71-.33 1.11-.92 1.96-1.83 2.71-.91.75-1.37 1.63-1.37 2.55 0 1.78 1.44 3.24 3.2 3.24z" />
+      </svg>
+    )
+  },
+  // 8. Pompa Nutrisi A — penambah nutrisi larutan (bagian A)
+  pompa_nutrisi_a: {
+    colorOn: 'from-green-400 to-lime-500',
+    iconColor: 'text-green-500',
+    bgLight: 'bg-green-50',
+    bgDark: 'dark:bg-green-500/10',
+    icon: (props) => (
+      <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2h-2" />
+        <rect x="9" y="1" width="6" height="4" rx="1" />
+        <path d="M9 12h6M12 9v6" />
+      </svg>
+    )
+  },
+  // 9. Pompa Nutrisi B — penambah nutrisi larutan (bagian B)
+  pompa_nutrisi_b: {
+    colorOn: 'from-emerald-400 to-teal-600',
+    iconColor: 'text-emerald-500',
+    bgLight: 'bg-emerald-50',
+    bgDark: 'dark:bg-emerald-500/10',
+    icon: (props) => (
+      <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2h-2" />
+        <rect x="9" y="1" width="6" height="4" rx="1" />
+        <path d="M10 12h2a2 2 0 010 4h-2v-4zM10 9h2a1.5 1.5 0 010 3h-2V9z" />
+      </svg>
+    )
+  },
+  // 10. Kipas Pendingin — menurunkan suhu larutan nutrisi (forced convection)
+  kipas_pendingin: {
+    colorOn: 'from-indigo-400 to-blue-600',
+    iconColor: 'text-indigo-500',
+    bgLight: 'bg-indigo-50',
+    bgDark: 'dark:bg-indigo-500/10',
+    icon: (props) => (
+      <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 12c-1.5-3-1-7 2-9 0 3 1.5 5 4 6s4 4 3 7c-1-1-3-1.5-5-1" />
+        <path d="M12 12c1.5 3 1 7-2 9 0-3-1.5-5-4-6s-4-4-3-7c1 1 3 1.5 5 1" />
+        <path d="M12 12c3 1.5 7 1 9-2-3 0-5-1.5-6-4s-4-4-7-3c1 1 1.5 3 1 5" />
+        <path d="M12 12c-3-1.5-7-1-9 2 3 0 5 1.5 6 4s4 4 7 3c-1-1-1.5-3-1-5" />
+        <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
+      </svg>
+    )
+  },
+
+  // Legacy fallbacks (kept for backward compatibility)
   pompa_nutrisi: {
     colorOn: 'from-teal-400 to-emerald-500',
     iconColor: 'text-teal-500',
@@ -68,21 +220,6 @@ const ACTUATOR_VISUALS = {
       </svg>
     )
   },
-  solenoid_valve: {
-    colorOn: 'from-purple-400 to-indigo-500',
-    iconColor: 'text-purple-500',
-    bgLight: 'bg-purple-50',
-    bgDark: 'dark:bg-purple-500/10',
-    icon: (props) => (
-      <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="7" y="8" width="10" height="8" rx="1" />
-        <path d="M3 12h4M17 12h4" />
-        <path d="M10 8V5M14 8V5" />
-        <path d="M10 16v3M14 16v3" />
-        <circle cx="12" cy="12" r="2" />
-      </svg>
-    )
-  },
   misting: {
     colorOn: 'from-sky-400 to-blue-500',
     iconColor: 'text-sky-500',
@@ -107,6 +244,20 @@ const SENSOR_NAMES = {
   suhu_larutan: 'Suhu Larutan',
 };
 
+// Function descriptions for each actuator (from thesis Tabel III.5)
+const ACTUATOR_DESCRIPTIONS = {
+  exhaust_fan:      'Menurunkan suhu melalui ventilasi paksa saat suhu greenhouse melebihi setpoint',
+  pompa_misting:    'Menghasilkan kabut air untuk pendinginan evaporatif',
+  led_grow_light:   'Menambah intensitas cahaya saat nilai lux di bawah setpoint',
+  pompa_sirkulasi:  'Mengalirkan larutan nutrisi dari reservoir ke sistem DFT dan mengembalikannya',
+  pompa_ph_up:      'Koreksi pH larutan (menaikkan pH)',
+  pompa_ph_down:    'Koreksi pH larutan (menurunkan pH)',
+  pompa_air_bersih: 'Menambahkan air bersih ke tandon',
+  pompa_nutrisi_a:  'Penambah nutrisi larutan (Nutrisi A)',
+  pompa_nutrisi_b:  'Penambah nutrisi larutan (Nutrisi B)',
+  kipas_pendingin:  'Menurunkan suhu larutan nutrisi melalui mekanisme forced convection',
+};
+
 function ActuatorCard({ actuator }) {
   const visual = ACTUATOR_VISUALS[actuator.id] || ACTUATOR_VISUALS['pompa_air'];
   const Icon = visual.icon;
@@ -118,7 +269,7 @@ function ActuatorCard({ actuator }) {
       <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${visual.colorOn} ${isOn ? 'opacity-15 dark:opacity-25' : 'opacity-5 dark:opacity-10'} rounded-full blur-2xl -mr-10 -mt-10 transition-opacity group-hover:opacity-20 dark:group-hover:opacity-30`}></div>
 
       {/* Top row: icon + label */}
-      <div className="flex justify-between items-start relative z-10 w-full mb-4">
+      <div className="flex justify-between items-start relative z-10 w-full mb-3">
         <div className="flex items-center gap-3">
           <div className={`p-3 rounded-2xl ${visual.bgLight} ${visual.bgDark} shadow-sm backdrop-blur-md transition-transform duration-300 group-hover:scale-110 border border-white/50 dark:border-gray-700/30`}>
             <Icon className={`w-6 h-6 ${visual.iconColor} stroke-[2]`} />
@@ -129,6 +280,13 @@ function ActuatorCard({ actuator }) {
         </div>
       </div>
 
+      {/* Function description (always visible) */}
+      {ACTUATOR_DESCRIPTIONS[actuator.id] && (
+        <p className="relative z-10 text-[12px] text-gray-400 dark:text-gray-500 leading-relaxed mb-3 line-clamp-2">
+          {ACTUATOR_DESCRIPTIONS[actuator.id]}
+        </p>
+      )}
+
       {/* Triggered by info */}
       <div className="relative z-10 mb-4">
         {actuator.triggered_by ? (
@@ -137,7 +295,7 @@ function ActuatorCard({ actuator }) {
           </p>
         ) : (
           <p className="text-[13px] text-gray-500 dark:text-gray-400 leading-relaxed">
-            {isOn ? 'Diaktifkan manual' : 'Menunggu data sensor...'}
+            {isOn ? 'Diaktifkan manual' : 'Standby'}
           </p>
         )}
         {actuator.updated_at && (
