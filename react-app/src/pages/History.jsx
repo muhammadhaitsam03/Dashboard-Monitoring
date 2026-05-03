@@ -80,7 +80,7 @@ const formatDateToDDMMYYYY = (dateStringOrDate) => {
 };
 
 const currentYearInt = new Date().getFullYear();
-const YEAR_OPTIONS = Array.from({length: 11}, (_, i) => String(currentYearInt - 5 + i));
+const YEAR_OPTIONS = Array.from({ length: 11 }, (_, i) => String(currentYearInt - 5 + i));
 
 const RANGE_OPTIONS = {
   Perjam: Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}.00`),
@@ -123,7 +123,7 @@ const processSensorData = (rawData, dbKey, timeMode, targetDateStr, rangeStart, 
     const end = new Date(start);
     end.setDate(start.getDate() + spanDays - 1);
     end.setHours(23, 59, 59, 999);
-    
+
     const buckets = Array(spanDays).fill().map((_, i) => {
       const bDate = new Date(start);
       bDate.setDate(bDate.getDate() + i);
@@ -151,7 +151,7 @@ const processSensorData = (rawData, dbKey, timeMode, targetDateStr, rangeStart, 
     const end = new Date(start);
     end.setDate(start.getDate() + (spanWeeks * 7) - 1);
     end.setHours(23, 59, 59, 999);
-    
+
     const buckets = Array(spanWeeks).fill().map((_, i) => {
       const weekStart = new Date(start);
       weekStart.setDate(start.getDate() + (i * 7));
@@ -176,7 +176,7 @@ const processSensorData = (rawData, dbKey, timeMode, targetDateStr, rangeStart, 
   if (timeMode === 'Perbulan') {
     const yearInt = parseInt(selectedYear, 10) || new Date().getFullYear();
     const buckets = Array(12).fill().map((_, i) => ({ time: i, label: RANGE_OPTIONS['Perbulan'][i], sum: 0, count: 0, value: null }));
-    
+
     rawData.forEach(row => {
       const d = new Date(row.created_at);
       if (d.getFullYear() === yearInt) {
@@ -259,12 +259,12 @@ const DetailedChartCard = ({ title, rawData, dbKey, yDomain, isDark, defaultTime
   const [rangeEnd, setRangeEnd] = useState(RANGE_OPTIONS['Perjam'][23]);
   const [spanLimit, setSpanLimit] = useState(RANGE_OPTIONS['Perhari'][5]);
 
-  const startOptions = timeMode === 'Perjam' || timeMode === 'Perbulan' 
-    ? RANGE_OPTIONS[timeMode].filter((_, i) => i <= labelToIndex(rangeEnd, timeMode)) 
+  const startOptions = timeMode === 'Perjam' || timeMode === 'Perbulan'
+    ? RANGE_OPTIONS[timeMode].filter((_, i) => i <= labelToIndex(rangeEnd, timeMode))
     : [];
-  
-  const endOptions = timeMode === 'Perjam' || timeMode === 'Perbulan' 
-    ? RANGE_OPTIONS[timeMode].filter((_, i) => i >= labelToIndex(rangeStart, timeMode)) 
+
+  const endOptions = timeMode === 'Perjam' || timeMode === 'Perbulan'
+    ? RANGE_OPTIONS[timeMode].filter((_, i) => i >= labelToIndex(rangeStart, timeMode))
     : [];
 
   const handleStartChange = (val) => setRangeStart(val);
@@ -273,12 +273,12 @@ const DetailedChartCard = ({ title, rawData, dbKey, yDomain, isDark, defaultTime
   const handleTimeChange = (newMode) => {
     setTimeMode(newMode);
     if (newMode === 'Perhari') {
-       setSpanLimit('6 Hari');
+      setSpanLimit('6 Hari');
     } else if (newMode === 'Perminggu') {
-       setSpanLimit('4 Minggu');
+      setSpanLimit('4 Minggu');
     } else {
-       setRangeStart(RANGE_OPTIONS[newMode][0]);
-       setRangeEnd(RANGE_OPTIONS[newMode][RANGE_OPTIONS[newMode].length - 1]);
+      setRangeStart(RANGE_OPTIONS[newMode][0]);
+      setRangeEnd(RANGE_OPTIONS[newMode][RANGE_OPTIONS[newMode].length - 1]);
     }
   };
 
@@ -296,7 +296,7 @@ const DetailedChartCard = ({ title, rawData, dbKey, yDomain, isDark, defaultTime
     filteredData = processedData.filter(d => d.time >= startIdx && d.time <= endIdx);
   } else {
     filteredData = processedData;
-    startIdx = 0; 
+    startIdx = 0;
     endIdx = filteredData.length > 0 ? filteredData.length - 1 : 0;
   }
 
@@ -351,6 +351,12 @@ const DetailedChartCard = ({ title, rawData, dbKey, yDomain, isDark, defaultTime
         unit,
         chartRef: chartContainerRef.current,
         rangeLabel,
+        rawData,
+        dbKey,
+        selectedDate,
+        timeMode,
+        spanLimit,
+        selectedYear,
       });
     } catch (err) {
       console.error('Excel export failed:', err);
@@ -369,7 +375,7 @@ const DetailedChartCard = ({ title, rawData, dbKey, yDomain, isDark, defaultTime
       <div className="bg-white dark:bg-[#1a1f2e] rounded-2xl p-5 pb-5 border border-gray-100/80 dark:border-gray-700/40 flex flex-col transition-all duration-300 hover:shadow-lg hover:shadow-black/[0.03] dark:hover:shadow-black/20 group">
 
         <div id="tour-history-filters" className="flex justify-end items-center gap-2 mb-4 w-full flex-wrap">
-          
+
           {timeMode === 'Perbulan' ? (
             <CustomSelect
               value={selectedYear}
@@ -398,7 +404,7 @@ const DetailedChartCard = ({ title, rawData, dbKey, yDomain, isDark, defaultTime
             options={['Perjam', 'Perhari', 'Perminggu', 'Perbulan']}
             className="w-[90px] text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200/80 dark:border-gray-700/60 rounded-lg pl-3 pr-2 py-1.5 outline-none text-gray-600 dark:text-gray-300 font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
           />
-          
+
           {['Perjam', 'Perbulan'].includes(timeMode) ? (
             <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-gray-800 border border-gray-200/80 dark:border-gray-700/60 rounded-lg p-0.5 transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-600">
               <CustomSelect

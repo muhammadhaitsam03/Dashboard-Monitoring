@@ -132,7 +132,7 @@ const CustomTooltip = ({ active, payload, label, unit, color }) => {
   return null;
 };
 
-const HistoryChart = ({ title, data, yDomain, isDark, unit = '', optimalRange }) => {
+const HistoryChart = ({ title, data, yDomain, isDark, unit = '', optimalRange, rawData, dbKey }) => {
   const theme = chartThemes[title] || chartThemes['Suhu Rumah Kaca'];
   const lineColor = isDark ? theme.dark : theme.light;
   const gradientId = `gradient-${title.replace(/\s/g, '-')}`;
@@ -148,21 +148,29 @@ const HistoryChart = ({ title, data, yDomain, isDark, unit = '', optimalRange })
   const validValues = data.filter(d => d.value !== null).map(d => d.value);
   const stats = validValues.length > 0
     ? {
-        min: Math.min(...validValues).toFixed(1),
-        max: Math.max(...validValues).toFixed(1),
-        avg: (validValues.reduce((a, b) => a + b, 0) / validValues.length).toFixed(1),
-        hasData: true,
-      }
+      min: Math.min(...validValues).toFixed(1),
+      max: Math.max(...validValues).toFixed(1),
+      avg: (validValues.reduce((a, b) => a + b, 0) / validValues.length).toFixed(1),
+      hasData: true,
+    }
     : { min: '—', max: '—', avg: '—', hasData: false };
 
   const handleDownloadExcel = async () => {
     setIsExporting(true);
     try {
+      // today's date for Perjam filter
+      const today = new Date();
+      const selectedDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000)
+        .toISOString().split('T')[0];
       await exportSensorToExcel({
         title,
         data,
         unit,
         chartRef: chartContainerRef.current,
+        rawData,
+        dbKey,
+        selectedDate,
+        timeMode: 'Perjam',
       });
     } catch (err) {
       console.error('Excel export failed:', err);
@@ -275,7 +283,7 @@ const HistoryChart = ({ title, data, yDomain, isDark, unit = '', optimalRange })
               isAnimationActive={true}
               animationDuration={800}
               animationEasing="ease-out"
-              connectNulls={false}
+              connectNulls={true}
             />
           </AreaChart>
         </ResponsiveContainer>
@@ -483,6 +491,8 @@ export default function Home() {
               isDark={isDark}
               unit="°C"
               optimalRange={optimalRanges['Suhu Rumah Kaca']}
+              rawData={rawData}
+              dbKey={DB_MAP['Suhu Rumah Kaca']}
             />
             <HistoryChart
               title="Kelembapan"
@@ -491,6 +501,8 @@ export default function Home() {
               isDark={isDark}
               unit="%"
               optimalRange={optimalRanges['Kelembapan']}
+              rawData={rawData}
+              dbKey={DB_MAP['Kelembapan']}
             />
             <HistoryChart
               title="Intensitas Cahaya"
@@ -499,6 +511,8 @@ export default function Home() {
               isDark={isDark}
               unit=" lux"
               optimalRange={optimalRanges['Intensitas Cahaya']}
+              rawData={rawData}
+              dbKey={DB_MAP['Intensitas Cahaya']}
             />
             <HistoryChart
               title="pH"
@@ -507,6 +521,8 @@ export default function Home() {
               isDark={isDark}
               unit=""
               optimalRange={optimalRanges['pH']}
+              rawData={rawData}
+              dbKey={DB_MAP['pH']}
             />
             <HistoryChart
               title="TDS"
@@ -515,6 +531,8 @@ export default function Home() {
               isDark={isDark}
               unit=" ppm"
               optimalRange={optimalRanges['TDS']}
+              rawData={rawData}
+              dbKey={DB_MAP['TDS']}
             />
             <HistoryChart
               title="Suhu Larutan"
@@ -523,6 +541,8 @@ export default function Home() {
               isDark={isDark}
               unit="°C"
               optimalRange={optimalRanges['Suhu Larutan']}
+              rawData={rawData}
+              dbKey={DB_MAP['Suhu Larutan']}
             />
           </div>
         </section>
