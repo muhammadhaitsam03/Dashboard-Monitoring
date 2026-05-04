@@ -12,25 +12,29 @@ const NAV_ITEMS = [
   { id: 'home', path: '/home', icon: HomeIcon },
   { id: 'history', path: '/history', icon: HistoryIcon },
   { id: 'brain', path: '/brain', icon: BrainCircuit },
-  { id: 'threshold', path: '/threshold', icon: props => (
-    <svg 
-      {...props}
-      viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
-    >
-      <path d="M4 21h16M7 21v-5s-2-1-2-1M7 18s2-1 2-1M17 21v-4s2-1 2-1M17 19s-2-1 2-1M10 9a2 2 0 0 1 4 0M8 6a6 6 0 0 1 8 0M12 18v3M8 21v-2h3" />
-      <rect x="10" y="11" width="4" height="7" rx="1" />
-      <circle cx="12" cy="14.5" r="0.5" fill="currentColor" />
-    </svg>
-  )},
-  { id: 'actuator', path: '/actuator', icon: props => (
-    <svg
-      {...props}
-      viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
-    >
-      <circle cx="12" cy="12" r="3" />
-      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
-    </svg>
-  )},
+  {
+    id: 'threshold', path: '/threshold', icon: props => (
+      <svg
+        {...props}
+        viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+      >
+        <path d="M4 21h16M7 21v-5s-2-1-2-1M7 18s2-1 2-1M17 21v-4s2-1 2-1M17 19s-2-1 2-1M10 9a2 2 0 0 1 4 0M8 6a6 6 0 0 1 8 0M12 18v3M8 21v-2h3" />
+        <rect x="10" y="11" width="4" height="7" rx="1" />
+        <circle cx="12" cy="14.5" r="0.5" fill="currentColor" />
+      </svg>
+    )
+  },
+  {
+    id: 'actuator', path: '/actuator', icon: props => (
+      <svg
+        {...props}
+        viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+      >
+        <circle cx="12" cy="12" r="3" />
+        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+      </svg>
+    )
+  },
   { id: 'about', path: '/about', icon: MoreHorizontal },
 ];
 
@@ -65,12 +69,12 @@ export default function Sidebar({ isDark }) {
   return (
     <div className="flex h-screen py-4 pl-4 pointer-events-none relative z-20">
       <aside ref={sidebarRef} className="w-[80px] md:w-[100px] bg-[#385344] flex flex-col items-center py-6 shadow-xl shrink-0 transition-colors duration-300 rounded-[50px] h-full pointer-events-auto relative overflow-hidden">
-        
+
         {/* Active Indicator (The sliding cutout) */}
         {activePage && (
-          <div 
+          <div
             className="absolute right-0 w-[calc(100%-1.25rem)] bg-[#f1f2f1] dark:bg-gray-900 rounded-l-[35px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] z-0"
-            style={{ 
+            style={{
               top: `${indicatorStyle.top}px`,
               height: `${indicatorStyle.height}px`,
               opacity: indicatorStyle.opacity,
@@ -90,10 +94,10 @@ export default function Sidebar({ isDark }) {
         )}
 
         {/* Logo */}
-        <div 
+        <div
           className="w-14 h-14 rounded-full mb-8 flex items-center justify-center relative z-10 shrink-0 overflow-hidden bg-white/90 dark:bg-white/15 shadow-md"
         >
-          <img src="/logo.png" alt="Dashboard Logo" className="w-10 h-10 object-contain" />
+          <img src="/logo.png" alt="Dashboard Logo" className="w-14 h-14 object-contain" />
         </div>
 
         <nav className="flex flex-col gap-1 flex-1 w-full relative z-10 justify-center">
@@ -102,10 +106,10 @@ export default function Sidebar({ isDark }) {
             const isActive = activePage === item.id;
 
             return (
-              <button 
+              <button
                 key={item.id}
                 ref={el => buttonRefs.current[index] = el}
-                onClick={() => navigate(item.path)} 
+                onClick={() => navigate(item.path)}
                 className={`
                   relative flex justify-center items-center w-full group py-3 transition-all duration-300 cursor-pointer
                   ${isActive ? '' : 'text-white'}
